@@ -1,4 +1,4 @@
-export type LLMProvider = 'openai' | 'anthropic' | 'ollama';
+export type LLMProviderName = 'openai' | 'anthropic' | 'ollama';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -25,16 +25,11 @@ export interface ChatResponse {
 export interface LLMConfig {
   id: string;
   userId: string;
-  provider: LLMProvider;
+  provider: LLMProviderName;
   model: string;
   apiKey?: string;
   endpoint?: string;
   isDefault: boolean;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface ILLMProvider {
-  chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse>;
-  stream(messages: ChatMessage[], options?: ChatOptions): AsyncIterator<string>;
 }
