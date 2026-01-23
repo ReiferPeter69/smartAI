@@ -29,22 +29,27 @@ export const LLMConfigSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const LLMConfigCreateSchema = z.object({
-  provider: LLMProviderSchema,
-  model: z.string(),
-  apiKey: z.string().optional(),
-  endpoint: z.string().url().optional(),
-}).refine((data) => {
-  if (data.provider === 'ollama' && !data.endpoint) {
-    return false;
-  }
-  if ((data.provider === 'openai' || data.provider === 'anthropic') && !data.apiKey) {
-    return false;
-  }
-  return true;
-}, {
-  message: 'Ollama requires endpoint, OpenAI and Anthropic require apiKey',
-});
+export const LLMConfigCreateSchema = z
+  .object({
+    provider: LLMProviderSchema,
+    model: z.string(),
+    apiKey: z.string().optional(),
+    endpoint: z.string().url().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.provider === 'ollama' && !data.endpoint) {
+        return false;
+      }
+      if ((data.provider === 'openai' || data.provider === 'anthropic') && !data.apiKey) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Ollama requires endpoint, OpenAI and Anthropic require apiKey',
+    }
+  );
 
 export const LLMConfigUpdateSchema = z.object({
   model: z.string().optional(),

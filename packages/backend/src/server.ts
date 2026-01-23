@@ -27,6 +27,7 @@ export function createApp(prisma: PrismaClient): Application {
 
 export function startServer(app: Application): void {
   app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
     console.log(`Server running on port ${PORT}`);
   });
 }

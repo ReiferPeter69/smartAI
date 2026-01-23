@@ -24,12 +24,14 @@ export const ArchitectureSpecSchema = z.object({
   domainModel: z.string(),
   userStories: z.array(z.string()),
   dataModels: z.record(z.string(), z.any()),
-  apiContracts: z.array(z.object({
-    endpoint: z.string(),
-    method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']),
-    request: z.any().optional(),
-    response: z.any(),
-  })),
+  apiContracts: z.array(
+    z.object({
+      endpoint: z.string(),
+      method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']),
+      request: z.any().optional(),
+      response: z.any(),
+    })
+  ),
 });
 
 export const PlanStepSchema = z.object({
@@ -43,11 +45,15 @@ export const PlanStepSchema = z.object({
 
 export const PlanSchema = z.object({
   steps: z.array(PlanStepSchema),
-  critiques: z.array(z.object({
-    step: z.string(),
-    critique: z.string(),
-    fix: z.string(),
-  })).optional(),
+  critiques: z
+    .array(
+      z.object({
+        step: z.string(),
+        critique: z.string(),
+        fix: z.string(),
+      })
+    )
+    .optional(),
 });
 
 export type SpecFileInput = z.infer<typeof SpecFileSchema>;

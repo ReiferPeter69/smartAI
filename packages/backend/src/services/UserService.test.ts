@@ -5,9 +5,16 @@ import bcrypt from 'bcrypt';
 
 vi.mock('@prisma/client');
 
+type MockPrismaClient = {
+  user: {
+    findUnique: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+  };
+};
+
 describe('UserService', () => {
   let userService: UserService;
-  let mockPrisma: any;
+  let mockPrisma: MockPrismaClient;
 
   beforeEach(() => {
     mockPrisma = {
@@ -16,7 +23,7 @@ describe('UserService', () => {
         create: vi.fn(),
       },
     };
-    userService = new UserService(mockPrisma as PrismaClient);
+    userService = new UserService(mockPrisma as unknown as PrismaClient);
   });
 
   describe('register', () => {

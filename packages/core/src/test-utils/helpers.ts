@@ -21,7 +21,7 @@ export function shouldThrowError(fn: () => void): boolean {
 
 export function mockEnvironmentVariables(vars: Record<string, string>) {
   const original = { ...process.env };
-  
+
   Object.entries(vars).forEach(([key, value]) => {
     process.env[key] = value;
   });

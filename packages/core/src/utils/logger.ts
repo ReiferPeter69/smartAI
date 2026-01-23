@@ -25,7 +25,12 @@ class Logger {
     return levels.indexOf(level) >= levels.indexOf(this.minLevel);
   }
 
-  private log(level: LogLevel, message: string, context?: Record<string, unknown>, error?: Error): void {
+  private log(
+    level: LogLevel,
+    message: string,
+    context?: Record<string, unknown>,
+    error?: Error
+  ): void {
     if (!this.shouldLog(level)) {
       return;
     }
@@ -39,7 +44,7 @@ class Logger {
     };
 
     const formattedMessage = this.formatLogEntry(entry);
-    
+
     switch (level) {
       case LogLevel.ERROR:
         console.error(formattedMessage);
@@ -48,6 +53,7 @@ class Logger {
         console.warn(formattedMessage);
         break;
       default:
+        // eslint-disable-next-line no-console
         console.log(formattedMessage);
     }
   }
