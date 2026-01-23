@@ -1,0 +1,90 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  projects      Project[]
+  llmConfigs    LLMConfig[]
+}
+
+model Project {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?
+  prompt          String
+  appType         String
+  status          String
+  filesPath       String
+  
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  
+  currentPhase    String
+  phaseStatus     String
+  
+  specFiles       SpecFile[]
+  verificationLogs VerificationLog[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId, status])
+}
+
+model SpecFile {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  filename    String
+  content     String   @db.Text
+  phase       String
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([projectId, filename])
+}
+
+model VerificationLog {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  stage       String
+  passed      Boolean
+  output      String   @db.Text
+  error       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([projectId, createdAt])
+}
+
+model LLMConfig {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  provider    String
+  model       String
+  apiKey      String?  @db.Text
+  endpoint    String?
+  
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, provider, model])
+}
