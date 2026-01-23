@@ -13,6 +13,9 @@
     "@obsidian/core": "*"
   },
   "devDependencies": {
-    "typescript": "^5.3.0"
+    "@vitest/coverage-v8": "^4.0.18",
+    "happy-dom": "^20.3.7",
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.18"
   }
 }
