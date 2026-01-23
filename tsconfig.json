@@ -14,6 +14,18 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@obsidian/core": ["packages/core/src"],
+      "@obsidian/core/*": ["packages/core/src/*"],
+      "@obsidian/backend": ["packages/backend/src"],
+      "@obsidian/backend/*": ["packages/backend/src/*"],
+      "@obsidian/frontend": ["packages/frontend/src"],
+      "@obsidian/frontend/*": ["packages/frontend/src/*"],
+      "@obsidian/generator": ["packages/generator/src"],
+      "@obsidian/generator/*": ["packages/generator/src/*"]
+    }
   }
 }

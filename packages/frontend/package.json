@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build",
     "dev": "tsc --watch",
     "lint": "eslint src",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --build --force --dry"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@obsidian/core": "*"
+  },
   "devDependencies": {
     "typescript": "^5.3.0"
   }

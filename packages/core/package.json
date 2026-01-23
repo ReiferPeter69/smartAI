@@ -5,11 +5,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build",
     "dev": "tsc --watch",
     "lint": "eslint src",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --build --force --dry"
   },
   "dependencies": {},
   "devDependencies": {
