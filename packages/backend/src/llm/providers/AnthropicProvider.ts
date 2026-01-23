@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import type { ChatMessage, ChatOptions, ChatResponse } from '@obsidian/core';
 import {
   LLMProvider,
@@ -11,8 +11,8 @@ import {
   ServiceUnavailableError,
 } from '@obsidian/core';
 
-const PROVIDER_NAME = 'openai';
-const DEFAULT_MODEL = 'gpt-4-turbo-preview';
+const PROVIDER_NAME = 'anthropic';
+const DEFAULT_MODEL = 'claude-3-5-sonnet-20241022';
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY_MS = 1000;
 
@@ -21,7 +21,7 @@ interface APIErrorLike {
   headers?: Record<string, string | null | undefined>;
 }
 
-export interface OpenAIProviderConfig {
+export interface AnthropicProviderConfig {
   apiKey: string;
   baseURL?: string;
   timeout?: number;
@@ -29,13 +29,13 @@ export interface OpenAIProviderConfig {
   defaultModel?: string;
 }
 
-export class OpenAIProvider implements LLMProvider {
-  private client: OpenAI;
+export class AnthropicProvider implements LLMProvider {
+  private client: Anthropic;
   private maxRetries: number;
   private defaultModel: string;
 
-  constructor(config: OpenAIProviderConfig) {
-    this.client = new OpenAI({
+  constructor(config: AnthropicProviderConfig) {
+    this.client = new Anthropic({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
       timeout: config.timeout ?? 60000,
@@ -50,32 +50,30 @@ export class OpenAIProvider implements LLMProvider {
 
     return this.withRetry(async () => {
       try {
-        const response = await this.client.chat.completions.create({
+        const { system, conversationMessages } = this.prepareMessages(messages);
+
+        const response = await this.client.messages.create({
           model,
-          messages: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
+          max_tokens: options?.maxTokens ?? 4096,
+          system,
+          messages: conversationMessages,
           temperature: options?.temperature,
-          max_tokens: options?.maxTokens,
-          stop: options?.stopSequences,
+          stop_sequences: options?.stopSequences,
         });
 
-        const choice = response.choices[0];
-        if (!choice) {
-          throw new LLMError('No response from OpenAI', PROVIDER_NAME);
+        const textContent = response.content.find((block) => block.type === 'text');
+        if (!textContent || textContent.type !== 'text') {
+          throw new LLMError('No text response from Anthropic', PROVIDER_NAME);
         }
 
         return {
-          content: choice.message.content ?? '',
-          usage: response.usage
-            ? {
-                promptTokens: response.usage.prompt_tokens,
-                completionTokens: response.usage.completion_tokens,
-                totalTokens: response.usage.total_tokens,
-              }
-            : undefined,
-          finishReason: choice.finish_reason,
+          content: textContent.text,
+          usage: {
+            promptTokens: response.usage.input_tokens,
+            completionTokens: response.usage.output_tokens,
+            totalTokens: response.usage.input_tokens + response.usage.output_tokens,
+          },
+          finishReason: response.stop_reason ?? undefined,
         };
       } catch (error) {
         throw this.mapError(error);
@@ -88,16 +86,15 @@ export class OpenAIProvider implements LLMProvider {
 
     const streamResponse = await this.withRetry(async () => {
       try {
-        return await this.client.chat.completions.create({
+        const { system, conversationMessages } = this.prepareMessages(messages);
+
+        return await this.client.messages.stream({
           model,
-          messages: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
+          max_tokens: options?.maxTokens ?? 4096,
+          system,
+          messages: conversationMessages,
           temperature: options?.temperature,
-          max_tokens: options?.maxTokens,
-          stop: options?.stopSequences,
-          stream: true,
+          stop_sequences: options?.stopSequences,
         });
       } catch (error) {
         throw this.mapError(error);
@@ -106,14 +103,37 @@ export class OpenAIProvider implements LLMProvider {
 
     try {
       for await (const chunk of streamResponse) {
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          yield content;
+        if (
+          chunk.type === 'content_block_delta' &&
+          chunk.delta.type === 'text_delta'
+        ) {
+          yield chunk.delta.text;
         }
       }
     } catch (error) {
       throw this.mapError(error);
     }
+  }
+
+  private prepareMessages(messages: ChatMessage[]): {
+    system?: string;
+    conversationMessages: Array<{
+      role: 'user' | 'assistant';
+      content: string;
+    }>;
+  } {
+    const systemMessage = messages.find((msg) => msg.role === 'system');
+    const conversationMessages = messages
+      .filter((msg) => msg.role !== 'system')
+      .map((msg) => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      }));
+
+    return {
+      system: systemMessage?.content,
+      conversationMessages,
+    };
   }
 
   private async withRetry<T>(fn: () => Promise<T>): Promise<T> {
@@ -163,7 +183,7 @@ export class OpenAIProvider implements LLMProvider {
       return error;
     }
 
-    if (error instanceof OpenAI.APIError) {
+    if (error instanceof Anthropic.APIError) {
       if (error.status === 401) {
         return new AuthenticationError(PROVIDER_NAME, error);
       }

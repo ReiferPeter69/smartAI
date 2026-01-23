@@ -2,7 +2,7 @@ import type { ChatMessage, ChatOptions, ChatResponse } from '../types/llm';
 
 export interface LLMProvider {
   chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse>;
-  stream(messages: ChatMessage[], options?: ChatOptions): AsyncIterator<string>;
+  stream(messages: ChatMessage[], options?: ChatOptions): AsyncIterableIterator<string>;
 }
 
 export class LLMError extends Error {
