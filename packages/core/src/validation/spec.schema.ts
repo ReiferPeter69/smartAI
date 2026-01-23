@@ -50,9 +50,7 @@ export const PlanSchema = z.object({
   })).optional(),
 });
 
-export type Phase = z.infer<typeof PhaseSchema>;
-export type PhaseStatus = z.infer<typeof PhaseStatusSchema>;
-export type SpecFile = z.infer<typeof SpecFileSchema>;
+export type SpecFileInput = z.infer<typeof SpecFileSchema>;
 export type SpecFileCreate = z.infer<typeof SpecFileCreateSchema>;
 export type ArchitectureSpec = z.infer<typeof ArchitectureSpecSchema>;
 export type PlanStep = z.infer<typeof PlanStepSchema>;

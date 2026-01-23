@@ -53,9 +53,8 @@ export const LLMConfigUpdateSchema = z.object({
   isDefault: z.boolean().optional(),
 });
 
-export type LLMProvider = z.infer<typeof LLMProviderSchema>;
 export type OpenAIModel = z.infer<typeof OpenAIModelSchema>;
 export type AnthropicModel = z.infer<typeof AnthropicModelSchema>;
-export type LLMConfig = z.infer<typeof LLMConfigSchema>;
+export type LLMConfigInput = z.infer<typeof LLMConfigSchema>;
 export type LLMConfigCreate = z.infer<typeof LLMConfigCreateSchema>;
 export type LLMConfigUpdate = z.infer<typeof LLMConfigUpdateSchema>;

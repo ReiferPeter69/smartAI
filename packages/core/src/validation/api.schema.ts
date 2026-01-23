@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { PhaseSchema, PhaseStatusSchema } from './spec.schema';
-import { LLMProviderSchema } from './config.schema';
 
 export const RegisterRequestSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -153,10 +152,8 @@ export const ClientEventSchema = z.discriminatedUnion('type', [
 
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
-export type User = z.infer<typeof UserSchema>;
+export type UserInput = z.infer<typeof UserSchema>;
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
-export type ProjectStatus = z.infer<typeof ProjectStatusSchema>;
-export type Project = z.infer<typeof ProjectSchema>;
 export type CreateProjectRequest = z.infer<typeof CreateProjectRequestSchema>;
 export type CreateProjectResponse = z.infer<typeof CreateProjectResponseSchema>;
 export type GetProjectsQuery = z.infer<typeof GetProjectsQuerySchema>;
