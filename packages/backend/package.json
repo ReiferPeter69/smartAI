@@ -15,7 +15,7 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "@obsidian/core": "*",
+    "@obsidian/core": "file:../core",
     "@prisma/client": "^7.3.0"
   },
   "devDependencies": {
