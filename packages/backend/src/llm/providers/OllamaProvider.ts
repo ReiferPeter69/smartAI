@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { type AxiosInstance, type AxiosError, isAxiosError } from 'axios';
 import type { ChatMessage, ChatOptions, ChatResponse } from '@obsidian/core';
 import {
   LLMProvider,
@@ -137,7 +137,7 @@ export class OllamaProvider implements LLMProvider {
         });
       });
 
-      const stream = response.data as any;
+      const stream = response.data as AsyncIterable<Buffer>;
 
       let buffer = '';
 
@@ -215,7 +215,7 @@ export class OllamaProvider implements LLMProvider {
       return error.statusCode >= 500 && error.statusCode < 600;
     }
 
-    if (axios.isAxiosError(error)) {
+    if (isAxiosError(error)) {
       if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
         return true;
       }
@@ -229,8 +229,8 @@ export class OllamaProvider implements LLMProvider {
       return error;
     }
 
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
+    if (isAxiosError(error)) {
+      const axiosError = error;
 
       if (axiosError.code === 'ECONNREFUSED' || axiosError.code === 'ENOTFOUND') {
         return new ServiceUnavailableError(
@@ -293,14 +293,14 @@ export class OllamaProvider implements LLMProvider {
 
   private extractErrorMessage(error: AxiosError): string {
     if (error.response?.data) {
-      const data = error.response.data as any;
+      const data = error.response.data as Record<string, unknown> | string;
       if (typeof data === 'string') {
         return data;
       }
       if (data.error) {
         return typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
       }
-      if (data.message) {
+      if (typeof data.message === 'string') {
         return data.message;
       }
     }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ChatMessage } from '@obsidian/core';
 import {
@@ -7,25 +8,29 @@ import {
   ServiceUnavailableError,
   TimeoutError,
 } from '@obsidian/core';
-import axios from 'axios';
 
-vi.mock('axios');
+const mockPost = vi.fn();
+const mockCreate = vi.fn(() => ({
+  post: mockPost,
+}));
 
-const mockAxios = axios as any;
+vi.mock('axios', () => {
+  return {
+    default: {
+      create: mockCreate,
+    },
+    isAxiosError: vi.fn(),
+  };
+});
 
 import { OllamaProvider } from './OllamaProvider';
 
 describe('OllamaProvider', () => {
   let provider: OllamaProvider;
-  let mockPost: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockPost = vi.fn();
-
-    mockAxios.create = vi.fn(() => ({
-      post: mockPost,
-    }));
+    mockPost.mockReset();
 
     provider = new OllamaProvider({
       baseURL: 'http://localhost:11434',
@@ -139,7 +144,8 @@ describe('OllamaProvider', () => {
       error.isAxiosError = true;
       mockPost.mockRejectedValue(error);
 
-      mockAxios.isAxiosError = vi.fn(() => true);
+      const { isAxiosError } = await import('axios');
+      (isAxiosError as any).mockReturnValue(true);
 
       await expect(provider.chat(messages)).rejects.toThrow(ServiceUnavailableError);
       await expect(provider.chat(messages)).rejects.toThrow(
@@ -155,7 +161,8 @@ describe('OllamaProvider', () => {
       error.isAxiosError = true;
       mockPost.mockRejectedValue(error);
 
-      mockAxios.isAxiosError = vi.fn(() => true);
+      const { isAxiosError } = await import('axios');
+      (isAxiosError as any).mockReturnValue(true);
 
       await expect(provider.chat(messages)).rejects.toThrow(TimeoutError);
     });
@@ -171,7 +178,8 @@ describe('OllamaProvider', () => {
       };
       mockPost.mockRejectedValue(error);
 
-      mockAxios.isAxiosError = vi.fn(() => true);
+      const { isAxiosError } = await import('axios');
+      (isAxiosError as any).mockReturnValue(true);
 
       await expect(provider.chat(messages)).rejects.toThrow(ModelNotFoundError);
     });
@@ -187,7 +195,8 @@ describe('OllamaProvider', () => {
       };
       mockPost.mockRejectedValue(error);
 
-      mockAxios.isAxiosError = vi.fn(() => true);
+      const { isAxiosError } = await import('axios');
+      (isAxiosError as any).mockReturnValue(true);
 
       await expect(provider.chat(messages)).rejects.toThrow(InvalidRequestError);
     });
@@ -212,7 +221,8 @@ describe('OllamaProvider', () => {
         },
       });
 
-      mockAxios.isAxiosError = vi.fn(() => true);
+      const { isAxiosError } = await import('axios');
+      (isAxiosError as any).mockReturnValue(true);
 
       const response = await provider.chat(messages);
 
@@ -230,7 +240,8 @@ describe('OllamaProvider', () => {
       };
       mockPost.mockRejectedValue(error);
 
-      mockAxios.isAxiosError = vi.fn(() => true);
+      const { isAxiosError } = await import('axios');
+      (isAxiosError as any).mockReturnValue(true);
 
       await expect(provider.chat(messages)).rejects.toThrow(AuthenticationError);
       expect(mockPost).toHaveBeenCalledTimes(1);
@@ -334,7 +345,8 @@ describe('OllamaProvider', () => {
       error.code = 'ECONNREFUSED';
       mockPost.mockRejectedValue(error);
 
-      mockAxios.isAxiosError = vi.fn(() => true);
+      const { isAxiosError } = await import('axios');
+      (isAxiosError as any).mockReturnValue(true);
 
       const generator = provider.stream(messages);
       await expect(generator.next()).rejects.toThrow(ServiceUnavailableError);
@@ -353,7 +365,8 @@ describe('OllamaProvider', () => {
       };
       mockPost.mockRejectedValue(error);
 
-      mockAxios.isAxiosError = vi.fn(() => true);
+      const { isAxiosError } = await import('axios');
+      (isAxiosError as any).mockReturnValue(true);
 
       await expect(provider.chat(messages)).rejects.toThrow('Internal server error');
     });
@@ -369,7 +382,8 @@ describe('OllamaProvider', () => {
       };
       mockPost.mockRejectedValue(error);
 
-      mockAxios.isAxiosError = vi.fn(() => true);
+      const { isAxiosError } = await import('axios');
+      (isAxiosError as any).mockReturnValue(true);
 
       await expect(provider.chat(messages)).rejects.toThrow('Custom error message');
     });

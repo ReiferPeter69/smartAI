@@ -26,8 +26,8 @@ async function testOllamaProvider() {
     console.log('✓ Chat response:', response.content);
     console.log('  Usage:', response.usage);
     console.log('  Finish reason:', response.finishReason);
-  } catch (error: any) {
-    if (error.message?.includes('Cannot connect to Ollama server')) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message?.includes('Cannot connect to Ollama server')) {
       console.log('⚠ Ollama server not running. Skipping manual integration test.');
       console.log('  To run this test, start Ollama with: ollama serve');
       console.log(`  Then run: ollama pull ${model}`);
