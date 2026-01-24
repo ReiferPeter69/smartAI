@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   ProviderFactory,
   ProviderConfigurationError,
@@ -369,8 +369,9 @@ describe('ProviderWithFallback', () => {
     const rateLimitError = new Error('Rate limit exceeded');
     rateLimitError.name = 'RateLimitError';
 
-    async function* primaryStream() {
+    async function* primaryStream(): AsyncIterableIterator<string> {
       throw rateLimitError;
+      yield '';
     }
 
     async function* fallbackStream() {

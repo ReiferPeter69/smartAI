@@ -21,8 +21,11 @@ export class ProviderFactory {
     switch (config.provider) {
       case 'openai': {
         const { OpenAIProvider } = await import('./providers/OpenAIProvider');
+        if (!config.apiKey) {
+          throw new ProviderConfigurationError('OpenAI requires an API key');
+        }
         return new OpenAIProvider({
-          apiKey: config.apiKey!,
+          apiKey: config.apiKey,
           baseURL: config.endpoint,
           defaultModel: config.model,
         });
@@ -30,8 +33,11 @@ export class ProviderFactory {
 
       case 'anthropic': {
         const { AnthropicProvider } = await import('./providers/AnthropicProvider');
+        if (!config.apiKey) {
+          throw new ProviderConfigurationError('Anthropic requires an API key');
+        }
         return new AnthropicProvider({
-          apiKey: config.apiKey!,
+          apiKey: config.apiKey,
           baseURL: config.endpoint,
           defaultModel: config.model,
         });
