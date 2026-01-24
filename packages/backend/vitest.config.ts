@@ -12,7 +12,7 @@ export default defineConfig({
     },
     server: {
       deps: {
-        inline: ['openai'],
+        inline: ['openai', '@anthropic-ai/sdk', 'axios'],
       },
     },
   },
