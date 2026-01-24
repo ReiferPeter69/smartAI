@@ -3,6 +3,7 @@ import { UserService } from '../../services/UserService';
 
 export interface AuthRequest extends Request {
   userId?: string;
+  user?: { userId: string };
 }
 
 export const authenticate = async (
@@ -22,6 +23,7 @@ export const authenticate = async (
 
     const { userId } = UserService.verifyToken(token);
     req.userId = userId;
+    req.user = { userId };
 
     next();
   } catch (error) {

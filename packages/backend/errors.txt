@@ -1,0 +1,39 @@
+src/api/middleware/validation.ts(33,18): error TS18046: 'validated' is of type 'unknown'.
+src/api/middleware/validation.ts(34,19): error TS18046: 'validated' is of type 'unknown'.
+src/api/middleware/validation.ts(35,20): error TS18046: 'validated' is of type 'unknown'.
+src/api/routes/events.ts(20,9): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/api/routes/events.ts(24,9): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/api/routes/generation.ts(3,34): error TS6196: 'LLMProviderName' is declared but never used.
+src/api/routes/generation.ts(6,32): error TS6133: 'CreateProviderConfig' is declared but its value is never read.
+src/api/routes/generation.ts(21,16): error TS2554: Expected 2-3 arguments, but got 1.
+src/api/routes/generation.ts(46,11): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/api/routes/generation.ts(50,11): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/api/routes/generation.ts(64,11): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/api/routes/generation.ts(115,5): error TS7030: Not all code paths return a value.
+src/api/routes/generation.ts(185,5): error TS7030: Not all code paths return a value.
+src/api/routes/generation.ts(267,5): error TS7030: Not all code paths return a value.
+src/api/routes/generation.ts(356,5): error TS7030: Not all code paths return a value.
+src/api/routes/projects.ts(64,43): error TS7030: Not all code paths return a value.
+src/api/routes/projects.ts(67,64): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/routes/projects.ts(87,5): error TS7030: Not all code paths return a value.
+src/api/routes/projects.ts(91,65): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/routes/projects.ts(100,67): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/routes/projects.ts(109,46): error TS7030: Not all code paths return a value.
+src/api/routes/projects.ts(113,63): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/routes/projects.ts(122,42): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/routes/projects.ts(130,59): error TS7030: Not all code paths return a value.
+src/api/routes/projects.ts(134,55): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/routes/projects.ts(143,53): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/routes/projects.ts(154,61): error TS7030: Not all code paths return a value.
+src/api/routes/projects.ts(158,55): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/routes/projects.ts(167,61): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/services/GenerationService.ts(32,13): error TS6138: Property 'llmProvider' is declared but its value is never read.

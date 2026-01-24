@@ -46,25 +46,6 @@ describe('ProviderFactory - Validation', () => {
       );
     });
 
-    it('throws error for missing Ollama endpoint', async () => {
-      const config: LLMConfig = {
-        id: '3',
-        userId: 'user1',
-        provider: 'ollama',
-        model: 'llama3',
-        isDefault: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      await expect(ProviderFactory.createProvider(config)).rejects.toThrow(
-        ProviderConfigurationError
-      );
-      await expect(ProviderFactory.createProvider(config)).rejects.toThrow(
-        'Ollama requires an endpoint'
-      );
-    });
-
     it('throws error for missing provider', async () => {
       const config = {
         id: '4',

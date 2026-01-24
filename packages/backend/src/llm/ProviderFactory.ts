@@ -1,5 +1,12 @@
-import type { LLMProvider } from '@obsidian/core';
+import type { LLMProvider, LLMProviderName } from '@obsidian/core';
 import type { LLMConfig } from '@obsidian/core';
+
+export interface CreateProviderConfig {
+  provider: LLMProviderName;
+  model: string;
+  apiKey?: string;
+  endpoint?: string;
+}
 
 export class ProviderConfigurationError extends Error {
   constructor(message: string) {
@@ -10,12 +17,12 @@ export class ProviderConfigurationError extends Error {
 }
 
 export interface ProviderFactoryOptions {
-  primaryConfig: LLMConfig;
-  fallbackConfig?: LLMConfig;
+  primaryConfig: LLMConfig | CreateProviderConfig;
+  fallbackConfig?: LLMConfig | CreateProviderConfig;
 }
 
 export class ProviderFactory {
-  static async createProvider(config: LLMConfig): Promise<LLMProvider> {
+  static async createProvider(config: LLMConfig | CreateProviderConfig): Promise<LLMProvider> {
     this.validateConfig(config);
 
     switch (config.provider) {
@@ -72,7 +79,7 @@ export class ProviderFactory {
     );
   }
 
-  private static validateConfig(config: LLMConfig): void {
+  private static validateConfig(config: LLMConfig | CreateProviderConfig): void {
     if (!config.provider) {
       throw new ProviderConfigurationError('Provider is required');
     }
@@ -96,13 +103,13 @@ export class ProviderFactory {
 
       case 'ollama':
         if (!config.endpoint) {
-          throw new ProviderConfigurationError('Ollama requires an endpoint');
+          config.endpoint = 'http://localhost:11434';
         }
         break;
 
       default:
         throw new ProviderConfigurationError(
-          `Unknown provider: ${(config as LLMConfig).provider}`
+          `Unknown provider: ${config.provider}`
         );
     }
   }
