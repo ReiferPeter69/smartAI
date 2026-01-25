@@ -30,9 +30,11 @@ export const validateRequest = (schema: ZodSchema) => {
         query: req.query,
         params: req.params,
       }) as { body?: unknown; query?: unknown; params?: unknown };
-      req.body = validated.body || req.body;
-      req.query = validated.query || req.query;
-      req.params = validated.params || req.params;
+      
+      if (validated.body !== undefined) {
+        req.body = validated.body;
+      }
+      
       next();
     } catch (error) {
       if (error instanceof ZodError) {

@@ -29,7 +29,7 @@ export class GenerationService {
 
   constructor(
     private session: GenerationSession,
-    private llmProvider: LLMProvider,
+    llmProvider: LLMProvider,
     private projectService: ProjectService
   ) {
     this.orchestrator = new PhaseOrchestrator(session);

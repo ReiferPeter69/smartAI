@@ -68,7 +68,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         }
 
         if (!llmConfig) {
-          return res.status(400).json({ error: 'No LLM configuration found' });
+          res.status(400).json({ error: 'No LLM configuration found' });
+          return;
         }
 
         const provider = await ProviderFactory.createProvider({
@@ -145,7 +146,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         });
 
         if (!llmConfig) {
-          return res.status(400).json({ error: 'No LLM configuration found' });
+          res.status(400).json({ error: 'No LLM configuration found' });
+          return;
         }
 
         const provider = await ProviderFactory.createProvider({
@@ -227,7 +229,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         });
 
         if (!llmConfig) {
-          return res.status(400).json({ error: 'No LLM configuration found' });
+          res.status(400).json({ error: 'No LLM configuration found' });
+          return;
         }
 
         const provider = await ProviderFactory.createProvider({
@@ -317,7 +320,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         });
 
         if (!llmConfig) {
-          return res.status(400).json({ error: 'No LLM configuration found' });
+          res.status(400).json({ error: 'No LLM configuration found' });
+          return;
         }
 
         const provider = await ProviderFactory.createProvider({
@@ -414,7 +418,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         });
 
         if (!llmConfig) {
-          return res.status(400).json({ error: 'No LLM configuration found' });
+          res.status(400).json({ error: 'No LLM configuration found' });
+          return;
         }
 
         const provider = await ProviderFactory.createProvider({

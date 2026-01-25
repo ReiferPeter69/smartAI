@@ -78,7 +78,7 @@ export function createProjectsRouter(prisma: PrismaClient): Router {
         return;
       }
 
-      const { projectId } = req.params;
+      const projectId = req.params.projectId as string;
       const project = await projectService.getProjectWithFiles(projectId);
 
       if (!project) {
@@ -108,7 +108,7 @@ export function createProjectsRouter(prisma: PrismaClient): Router {
           return;
         }
 
-        const { projectId } = req.params;
+        const projectId = req.params.projectId as string;
 
         const existingProject = await projectService.getProject(projectId);
         if (!existingProject) {
@@ -137,7 +137,7 @@ export function createProjectsRouter(prisma: PrismaClient): Router {
         return;
       }
 
-      const { projectId } = req.params;
+      const projectId = req.params.projectId as string;
 
       const existingProject = await projectService.getProject(projectId);
       if (!existingProject) {
@@ -165,7 +165,8 @@ export function createProjectsRouter(prisma: PrismaClient): Router {
         return;
       }
 
-      const { projectId, filename } = req.params;
+      const projectId = req.params.projectId as string;
+      const filename = req.params.filename as string;
 
       const project = await projectService.getProject(projectId);
       if (!project) {
@@ -197,7 +198,7 @@ export function createProjectsRouter(prisma: PrismaClient): Router {
         return;
       }
 
-      const { projectId } = req.params;
+      const projectId = req.params.projectId as string;
 
       const project = await projectService.getProject(projectId);
       if (!project) {
