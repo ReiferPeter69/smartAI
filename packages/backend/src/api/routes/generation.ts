@@ -247,21 +247,13 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
           prompt: project.prompt,
           appType: project.appType,
           currentPhase: {
-            phase: 'planning',
-            status: 'pending',
+            phase: 'discovery',
+            status: 'completed',
             artifacts: {},
             errors: [],
             retryCount: 0,
           },
-          history: [
-            {
-              phase: 'discovery',
-              status: 'completed',
-              artifacts: {},
-              errors: [],
-              retryCount: 0,
-            },
-          ],
+          history: [],
           config: {
             llmConfigId: llmConfig.id,
           },
@@ -338,8 +330,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
           prompt: project.prompt,
           appType: project.appType,
           currentPhase: {
-            phase: 'execution',
-            status: 'pending',
+            phase: 'planning',
+            status: 'completed',
             artifacts: {},
             errors: [],
             retryCount: 0,
@@ -347,13 +339,6 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
           history: [
             {
               phase: 'discovery',
-              status: 'completed',
-              artifacts: {},
-              errors: [],
-              retryCount: 0,
-            },
-            {
-              phase: 'planning',
               status: 'completed',
               artifacts: {},
               errors: [],
@@ -436,8 +421,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
           prompt: project.prompt,
           appType: project.appType,
           currentPhase: {
-            phase: 'verification',
-            status: 'pending',
+            phase: 'execution',
+            status: 'completed',
             artifacts: {},
             errors: [],
             retryCount: 0,
@@ -452,13 +437,6 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
             },
             {
               phase: 'planning',
-              status: 'completed',
-              artifacts: {},
-              errors: [],
-              retryCount: 0,
-            },
-            {
-              phase: 'execution',
               status: 'completed',
               artifacts: {},
               errors: [],
