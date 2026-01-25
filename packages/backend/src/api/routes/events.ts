@@ -10,8 +10,13 @@ export function createEventsRouter(prisma: PrismaClient): Router {
   const eventEmitter = GenerationEventEmitter.getInstance();
 
   router.get('/stream/:projectId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
     const projectId = req.params.projectId as string;
-    const userId = req.user!.userId;
+    const userId = req.user.userId;
 
     try {
       const project = await projectService.getProject(projectId);

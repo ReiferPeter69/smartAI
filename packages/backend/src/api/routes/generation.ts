@@ -38,8 +38,13 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
     validateRequest(startDiscoverySchema),
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
+        if (!req.user) {
+          res.status(401).json({ error: 'Unauthorized' });
+          return;
+        }
+
         const { projectId, llmConfigId } = req.body;
-        const userId = req.user!.userId;
+        const userId = req.user.userId;
 
         const project = await projectService.getProject(projectId);
         if (!project) {
@@ -116,8 +121,13 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
     validateRequest(submitAnswersSchema),
     async (req, res, next) => {
       try {
+        if (!req.user) {
+          res.status(401).json({ error: 'Unauthorized' });
+          return;
+        }
+
         const { projectId, answers } = req.body;
-        const userId = req.user!.userId;
+        const userId = req.user.userId;
 
         const project = await projectService.getProject(projectId);
         if (!project) {
@@ -188,8 +198,13 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
     validateRequest(startPhaseSchema),
     async (req, res, next) => {
       try {
+        if (!req.user) {
+          res.status(401).json({ error: 'Unauthorized' });
+          return;
+        }
+
         const { projectId } = req.body;
-        const userId = req.user!.userId;
+        const userId = req.user.userId;
 
         const project = await projectService.getProject(projectId);
         if (!project) {
@@ -203,7 +218,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         }
 
         if (project.currentPhase !== 'discovery' || project.phaseStatus !== 'completed') {
-          return res.status(400).json({ error: 'Discovery phase must be completed first' });
+          res.status(400).json({ error: 'Discovery phase must be completed first' });
+          return;
         }
 
         const llmConfig = await prisma.lLMConfig.findFirst({
@@ -272,8 +288,13 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
     validateRequest(startPhaseSchema),
     async (req, res, next) => {
       try {
+        if (!req.user) {
+          res.status(401).json({ error: 'Unauthorized' });
+          return;
+        }
+
         const { projectId } = req.body;
-        const userId = req.user!.userId;
+        const userId = req.user.userId;
 
         const project = await projectService.getProject(projectId);
         if (!project) {
@@ -287,7 +308,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         }
 
         if (project.currentPhase !== 'planning' || project.phaseStatus !== 'completed') {
-          return res.status(400).json({ error: 'Planning phase must be completed first' });
+          res.status(400).json({ error: 'Planning phase must be completed first' });
+          return;
         }
 
         const llmConfig = await prisma.lLMConfig.findFirst({
@@ -363,8 +385,13 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
     validateRequest(startPhaseSchema),
     async (req, res, next) => {
       try {
+        if (!req.user) {
+          res.status(401).json({ error: 'Unauthorized' });
+          return;
+        }
+
         const { projectId } = req.body;
-        const userId = req.user!.userId;
+        const userId = req.user.userId;
 
         const project = await projectService.getProject(projectId);
         if (!project) {
@@ -378,7 +405,8 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         }
 
         if (project.currentPhase !== 'execution' || project.phaseStatus !== 'completed') {
-          return res.status(400).json({ error: 'Execution phase must be completed first' });
+          res.status(400).json({ error: 'Execution phase must be completed first' });
+          return;
         }
 
         const llmConfig = await prisma.lLMConfig.findFirst({
