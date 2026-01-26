@@ -1,1 +1,1 @@
-export {};
+export { formatProjectName, isValidEmail } from './utils';
