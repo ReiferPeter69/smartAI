@@ -5,6 +5,7 @@ import { createAuthRouter } from './api/routes/auth';
 import { createProjectsRouter } from './api/routes/projects';
 import { createGenerationRouter } from './api/routes/generation';
 import { createEventsRouter } from './api/routes/events';
+import { createLLMConfigRouter } from './api/routes/llm-config';
 import { errorHandler, notFoundHandler } from './api/middleware/error-handler';
 
 const PORT = process.env.PORT || 3001;
@@ -24,6 +25,7 @@ export function createApp(prisma: PrismaClient): Application {
   app.use('/api/projects', createProjectsRouter(prisma));
   app.use('/api/generation', createGenerationRouter(prisma));
   app.use('/api/events', createEventsRouter(prisma));
+  app.use('/api/llm-configs', createLLMConfigRouter(prisma));
 
   app.use(notFoundHandler);
   app.use(errorHandler);
