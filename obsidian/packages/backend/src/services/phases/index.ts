@@ -6,3 +6,12 @@ export type {
   ClarificationResponse,
   ArchitectureSpec,
 } from './DiscoveryPhase';
+
+export { PlanningPhase } from './PlanningPhase';
+export type {
+  PlanningPhaseOptions,
+  PlanStep,
+  PlanPhase,
+  ImplementationPlan,
+  RedTeamCritique,
+} from './PlanningPhase';
