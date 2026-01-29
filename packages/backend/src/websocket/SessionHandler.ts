@@ -14,7 +14,7 @@ export class SessionHandler {
   private wss: WebSocketServer;
   private connectionManager: ConnectionManager;
 
-  constructor(private port?: number) {
+  constructor() {
     this.connectionManager = new ConnectionManager();
     this.wss = new WebSocketServer({ noServer: true });
     this.setupWebSocketServer();
@@ -40,10 +40,9 @@ export class SessionHandler {
       });
 
       authenticatedWs.on('error', (error: Error) => {
-        logger.error('WebSocket error', {
+        logger.error('WebSocket error', error, {
           sessionId,
           userId,
-          error: error.message,
         });
       });
 
@@ -78,8 +77,7 @@ export class SessionHandler {
         this.wss.emit('connection', ws, request, sessionId, userId);
       });
     } catch (error) {
-      logger.error('WebSocket upgrade failed', {
-        error: error instanceof Error ? error.message : String(error),
+      logger.error('WebSocket upgrade failed', error instanceof Error ? error : undefined, {
         url: request.url,
       });
 
@@ -137,10 +135,9 @@ export class SessionHandler {
 
       this.handleClientEvent(message, sessionId, userId);
     } catch (error) {
-      logger.error('Failed to process client message', {
+      logger.error('Failed to process client message', error instanceof Error ? error : undefined, {
         sessionId,
         userId,
-        error: error instanceof Error ? error.message : String(error),
       });
 
       this.sendError(ws, 'Failed to process message');

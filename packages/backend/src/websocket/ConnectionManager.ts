@@ -1,4 +1,3 @@
-import type { WebSocket } from 'ws';
 import type { WebSocketConnection, AuthenticatedWebSocket, ServerEvent } from './types';
 import { logger } from '../utils/logger';
 
@@ -105,10 +104,9 @@ export class ConnectionManager {
           connection.ws.send(message);
           sentCount++;
         } catch (error) {
-          logger.error('Failed to send message to WebSocket', {
+          logger.error('Failed to send message to WebSocket', error instanceof Error ? error : undefined, {
             sessionId,
             userId: connection.userId,
-            error: error instanceof Error ? error.message : String(error),
           });
         }
       }
@@ -132,10 +130,9 @@ export class ConnectionManager {
           connection.ws.send(message);
           sentCount++;
         } catch (error) {
-          logger.error('Failed to broadcast message', {
+          logger.error('Failed to broadcast message', error instanceof Error ? error : undefined, {
             sessionId: connection.sessionId,
             userId: connection.userId,
-            error: error instanceof Error ? error.message : String(error),
           });
         }
       }
@@ -195,9 +192,7 @@ export class ConnectionManager {
       try {
         connection.ws.close(1000, 'Server shutting down');
       } catch (error) {
-        logger.error('Error closing WebSocket connection', {
-          error: error instanceof Error ? error.message : String(error),
-        });
+        logger.error('Error closing WebSocket connection', error instanceof Error ? error : undefined);
       }
     }
 
