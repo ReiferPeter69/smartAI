@@ -7,6 +7,7 @@ import { createGenerationRouter } from './api/routes/generation';
 import { createEventsRouter } from './api/routes/events';
 import { createLLMConfigRouter } from './api/routes/llm-config';
 import { createModelsRouter } from './api/routes/models';
+import { createWorkflowsRouter } from './api/routes/workflows';
 import { errorHandler, notFoundHandler } from './api/middleware/error-handler';
 
 const PORT = process.env.PORT || 3001;
@@ -28,6 +29,7 @@ export function createApp(prisma: PrismaClient): Application {
   app.use('/api/events', createEventsRouter(prisma));
   app.use('/api/llm-configs', createLLMConfigRouter(prisma));
   app.use('/api/models', createModelsRouter());
+  app.use('/api/workflows', createWorkflowsRouter());
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -2,7 +2,7 @@ export interface Skill {
   id: string;
   name: string;
   description: string;
-  category: 'frontend' | 'backend' | 'devops' | 'testing' | 'security' | 'general';
+  category: 'frontend' | 'backend' | 'devops' | 'testing' | 'security' | 'general' | 'mobile' | 'product';
   context: string;
   examples: string[];
   bestPractices: string[];
@@ -302,6 +302,725 @@ export const SKILL_LIBRARY: Record<string, Skill> = {
       'Large bundle sizes',
       'N+1 query problems',
       'No caching strategy',
+    ],
+  },
+
+  'nodejs': {
+    id: 'nodejs',
+    name: 'Node.js Best Practices',
+    description: 'Modern Node.js development patterns',
+    category: 'backend',
+    context: `Node.js best practices:
+- Use async/await for I/O operations
+- Implement proper error handling
+- Use streams for large data
+- Environment-based configuration
+- Process management (PM2, Docker)
+- Graceful shutdown handling`,
+    examples: [
+      'async/await instead of callbacks',
+      'Express/Fastify/Hono for APIs',
+      'Use dotenv for environment variables',
+      'Implement health check endpoints',
+      'Handle uncaught exceptions',
+    ],
+    bestPractices: [
+      'Use LTS versions of Node.js',
+      'Implement proper logging (Winston, Pino)',
+      'Use dependency injection',
+      'Validate environment variables at startup',
+      'Handle process signals (SIGTERM, SIGINT)',
+      'Implement circuit breakers for external services',
+    ],
+    commonPitfalls: [
+      'Blocking the event loop',
+      'Not handling promise rejections',
+      'Memory leaks from event listeners',
+      'Not implementing rate limiting',
+      'Poor error handling',
+    ],
+  },
+
+  'graphql': {
+    id: 'graphql',
+    name: 'GraphQL API Design',
+    description: 'GraphQL schema design and resolver patterns',
+    category: 'backend',
+    context: `GraphQL patterns:
+- Schema-first design
+- Efficient resolver implementation
+- DataLoader for N+1 prevention
+- Proper error handling
+- Authentication and authorization
+- Query complexity limits`,
+    examples: [
+      'type Query { user(id: ID!): User }',
+      'type Mutation { createUser(input: CreateUserInput!): User! }',
+      'Use DataLoader for batching',
+      'Implement field-level resolvers',
+      'Use enums for fixed values',
+    ],
+    bestPractices: [
+      'Keep schema simple and intuitive',
+      'Use DataLoader to prevent N+1 queries',
+      'Implement pagination (cursor-based)',
+      'Validate input at the schema level',
+      'Use fragments for reusable fields',
+      'Implement query depth limits',
+    ],
+    commonPitfalls: [
+      'N+1 query problem',
+      'Over-fetching or under-fetching',
+      'No query complexity analysis',
+      'Poor error handling',
+      'Missing input validation',
+    ],
+  },
+
+  'kubernetes': {
+    id: 'kubernetes',
+    name: 'Kubernetes Deployment',
+    description: 'Container orchestration with Kubernetes',
+    category: 'devops',
+    context: `Kubernetes patterns:
+- Pod, Deployment, Service, Ingress
+- ConfigMaps and Secrets for configuration
+- Resource limits and requests
+- Health checks (liveness, readiness)
+- Horizontal Pod Autoscaling
+- Rolling updates and rollbacks`,
+    examples: [
+      'Deployment with replicas',
+      'Service for load balancing',
+      'Ingress for external access',
+      'ConfigMap for configuration',
+      'Secret for sensitive data',
+    ],
+    bestPractices: [
+      'Always set resource limits and requests',
+      'Implement liveness and readiness probes',
+      'Use namespaces for isolation',
+      'Version your deployments',
+      'Use Helm for package management',
+      'Implement network policies',
+    ],
+    commonPitfalls: [
+      'No resource limits (OOMKilled)',
+      'Missing health checks',
+      'Hardcoding configuration',
+      'Not using namespaces',
+      'Poor secret management',
+    ],
+  },
+
+  'ci-cd': {
+    id: 'ci-cd',
+    name: 'CI/CD Pipeline Design',
+    description: 'Continuous Integration and Deployment',
+    category: 'devops',
+    context: `CI/CD principles:
+- Automated testing on every commit
+- Fast feedback loops (< 10 min)
+- Deployment automation
+- Environment parity
+- Blue-green or canary deployments
+- Automated rollback capability`,
+    examples: [
+      'GitHub Actions workflow',
+      'GitLab CI pipeline',
+      'Jenkins pipeline as code',
+      'Automated testing and linting',
+      'Docker image build and push',
+    ],
+    bestPractices: [
+      'Run tests in parallel',
+      'Use caching for dependencies',
+      'Fail fast on errors',
+      'Separate build and deploy stages',
+      'Use environment variables for secrets',
+      'Implement quality gates',
+    ],
+    commonPitfalls: [
+      'Slow pipelines (> 15 min)',
+      'No test coverage',
+      'Hardcoded secrets',
+      'No rollback strategy',
+      'Manual deployment steps',
+    ],
+  },
+
+  'terraform': {
+    id: 'terraform',
+    name: 'Infrastructure as Code with Terraform',
+    description: 'Terraform for infrastructure provisioning',
+    category: 'devops',
+    context: `Terraform best practices:
+- Use modules for reusability
+- Remote state storage (S3, Terraform Cloud)
+- State locking to prevent conflicts
+- Separate environments (dev, staging, prod)
+- Plan before apply
+- Version control for all code`,
+    examples: [
+      'Define resources in .tf files',
+      'Use variables for flexibility',
+      'Output values for reference',
+      'Use modules for complex setups',
+      'terraform plan, terraform apply',
+    ],
+    bestPractices: [
+      'Use remote state storage',
+      'Enable state locking',
+      'Use workspaces for environments',
+      'Version your modules',
+      'Use data sources for existing resources',
+      'Implement proper IAM permissions',
+    ],
+    commonPitfalls: [
+      'Local state files',
+      'No state locking',
+      'Hardcoded values',
+      'Not using modules',
+      'Direct resource modification',
+    ],
+  },
+
+  'monitoring': {
+    id: 'monitoring',
+    name: 'Monitoring and Observability',
+    description: 'Application monitoring and logging',
+    category: 'devops',
+    context: `Observability pillars:
+- Metrics (Prometheus, Grafana)
+- Logs (ELK, Loki)
+- Traces (Jaeger, Zipkin)
+- Alerts and notifications
+- SLIs, SLOs, SLAs
+- Error tracking (Sentry)`,
+    examples: [
+      'Prometheus metrics collection',
+      'Grafana dashboards',
+      'Structured logging with correlation IDs',
+      'Distributed tracing',
+      'Error rate monitoring',
+    ],
+    bestPractices: [
+      'Implement structured logging',
+      'Use correlation IDs',
+      'Set up alerting for critical metrics',
+      'Monitor golden signals (latency, traffic, errors, saturation)',
+      'Implement health check endpoints',
+      'Use APM tools',
+    ],
+    commonPitfalls: [
+      'No structured logging',
+      'Too many alerts (alert fatigue)',
+      'No correlation between logs and traces',
+      'Missing critical metrics',
+      'No error tracking',
+    ],
+  },
+
+  'accessibility': {
+    id: 'accessibility',
+    name: 'Web Accessibility (a11y)',
+    description: 'WCAG 2.1 compliance and accessible design',
+    category: 'frontend',
+    context: `Accessibility essentials:
+- Semantic HTML
+- ARIA attributes when needed
+- Keyboard navigation
+- Screen reader support
+- Color contrast (WCAG AA: 4.5:1)
+- Focus management`,
+    examples: [
+      'Use <button> for buttons, not <div>',
+      'Add alt text to images',
+      'Use aria-label for icon buttons',
+      'Implement skip links',
+      'Ensure keyboard navigation works',
+    ],
+    bestPractices: [
+      'Use semantic HTML elements',
+      'Provide alt text for all images',
+      'Ensure sufficient color contrast',
+      'Make all functionality keyboard accessible',
+      'Use ARIA landmarks',
+      'Test with screen readers',
+    ],
+    commonPitfalls: [
+      'Missing alt text',
+      'Poor color contrast',
+      'Keyboard traps',
+      'Missing focus indicators',
+      'Over-using ARIA',
+    ],
+  },
+
+  'tailwind': {
+    id: 'tailwind',
+    name: 'Tailwind CSS Patterns',
+    description: 'Utility-first CSS with Tailwind',
+    category: 'frontend',
+    context: `Tailwind best practices:
+- Utility-first approach
+- Custom theme configuration
+- Component extraction when needed
+- Responsive design modifiers
+- Dark mode support
+- Performance optimization`,
+    examples: [
+      'flex items-center justify-between',
+      'bg-blue-500 hover:bg-blue-600',
+      'sm:text-sm md:text-base lg:text-lg',
+      'dark:bg-gray-800',
+      '@apply for component classes',
+    ],
+    bestPractices: [
+      'Configure tailwind.config.js for design system',
+      'Use @apply sparingly',
+      'Purge unused CSS in production',
+      'Use responsive modifiers',
+      'Implement dark mode',
+      'Create custom utilities when needed',
+    ],
+    commonPitfalls: [
+      'Over-using @apply',
+      'Not purging unused CSS',
+      'Inconsistent spacing',
+      'Not using design tokens',
+      'Inline styles instead of utilities',
+    ],
+  },
+
+  'nextjs': {
+    id: 'nextjs',
+    name: 'Next.js App Router',
+    description: 'Modern Next.js with App Router and Server Components',
+    category: 'frontend',
+    context: `Next.js 13+ patterns:
+- App Router (not Pages Router)
+- Server Components by default
+- Client Components with "use client"
+- Server Actions for mutations
+- Streaming and Suspense
+- Route handlers for APIs`,
+    examples: [
+      'app/page.tsx for routes',
+      '"use client" for interactive components',
+      'async Server Components',
+      'Server Actions for forms',
+      'loading.tsx and error.tsx',
+    ],
+    bestPractices: [
+      'Use Server Components by default',
+      'Client Components only when needed',
+      'Implement loading states with Suspense',
+      'Use Server Actions for mutations',
+      'Optimize images with next/image',
+      'Implement proper error boundaries',
+    ],
+    commonPitfalls: [
+      'Using "use client" everywhere',
+      'Not using Server Components',
+      'No loading states',
+      'Client-side data fetching when server-side is better',
+      'Not optimizing images',
+    ],
+  },
+
+  'sql': {
+    id: 'sql',
+    name: 'SQL Query Optimization',
+    description: 'Efficient SQL queries and database performance',
+    category: 'backend',
+    context: `SQL optimization:
+- Use indexes strategically
+- Avoid SELECT *
+- Use EXPLAIN ANALYZE
+- Optimize JOINs
+- Parameterized queries
+- Connection pooling`,
+    examples: [
+      'CREATE INDEX idx_user_email ON users(email)',
+      'SELECT id, name FROM users WHERE email = $1',
+      'EXPLAIN ANALYZE SELECT ...',
+      'Use INNER JOIN instead of subqueries',
+      'Batch inserts for performance',
+    ],
+    bestPractices: [
+      'Index foreign keys and frequently queried columns',
+      'Use EXPLAIN to understand query plans',
+      'Avoid N+1 queries',
+      'Use connection pooling',
+      'Implement query timeouts',
+      'Use appropriate index types (B-tree, Hash, GIN)',
+    ],
+    commonPitfalls: [
+      'No indexes on foreign keys',
+      'Using SELECT *',
+      'N+1 query problem',
+      'Not using prepared statements',
+      'Over-indexing',
+    ],
+  },
+
+  'redis': {
+    id: 'redis',
+    name: 'Redis Caching Strategies',
+    description: 'Redis for caching and performance',
+    category: 'backend',
+    context: `Redis patterns:
+- Cache-aside pattern
+- Key expiration (TTL)
+- Pub/Sub for real-time
+- Sorted sets for leaderboards
+- Session storage
+- Rate limiting`,
+    examples: [
+      'SET key value EX 3600',
+      'GET key',
+      'INCR counter',
+      'ZADD leaderboard score member',
+      'PUBLISH channel message',
+    ],
+    bestPractices: [
+      'Set expiration on all keys',
+      'Use appropriate data structures',
+      'Implement cache invalidation strategy',
+      'Monitor memory usage',
+      'Use Redis Cluster for scaling',
+      'Implement connection pooling',
+    ],
+    commonPitfalls: [
+      'No key expiration',
+      'Cache stampede',
+      'Not handling connection failures',
+      'Storing too much data',
+      'Not monitoring memory',
+    ],
+  },
+
+  'websocket': {
+    id: 'websocket',
+    name: 'WebSocket Real-time Communication',
+    description: 'Real-time bidirectional communication',
+    category: 'backend',
+    context: `WebSocket patterns:
+- Connection management
+- Message broadcasting
+- Authentication
+- Reconnection logic
+- Heartbeat/ping-pong
+- Scaling with Redis Pub/Sub`,
+    examples: [
+      'Socket.io for WebSocket abstraction',
+      'ws library for Node.js',
+      'Broadcast to all clients',
+      'Room-based messaging',
+      'Authentication with JWT',
+    ],
+    bestPractices: [
+      'Implement authentication',
+      'Handle reconnection',
+      'Use heartbeat for connection health',
+      'Implement backpressure',
+      'Use Redis for multi-server scaling',
+      'Implement rate limiting',
+    ],
+    commonPitfalls: [
+      'No authentication',
+      'Memory leaks from unclosed connections',
+      'No reconnection logic',
+      'Broadcasting to too many clients',
+      'Not handling errors',
+    ],
+  },
+
+  'mobile-development': {
+    id: 'mobile-development',
+    name: 'Mobile Development Patterns',
+    description: 'iOS, Android, and React Native development',
+    category: 'mobile',
+    context: `Mobile development:
+- Platform-specific patterns (iOS vs Android)
+- Touch-first UI design
+- Offline-first architecture
+- Native module integration
+- Performance optimization
+- App store guidelines`,
+    examples: [
+      'React Native for cross-platform',
+      'Platform-specific code with Platform.OS',
+      'AsyncStorage for offline data',
+      'Native modules for device features',
+      'Optimize images and bundle size',
+    ],
+    bestPractices: [
+      'Design for both iOS and Android',
+      'Implement offline-first',
+      'Optimize for battery life',
+      'Use native modules judiciously',
+      'Test on real devices',
+      'Follow platform guidelines',
+    ],
+    commonPitfalls: [
+      'Not testing on real devices',
+      'Poor performance optimization',
+      'No offline support',
+      'Ignoring platform differences',
+      'Large bundle sizes',
+    ],
+  },
+
+  'microservices': {
+    id: 'microservices',
+    name: 'Microservices Architecture',
+    description: 'Distributed system design with microservices',
+    category: 'backend',
+    context: `Microservices patterns:
+- Service decomposition
+- API Gateway
+- Service discovery
+- Circuit breaker pattern
+- Event-driven architecture
+- Distributed tracing`,
+    examples: [
+      'Each service has its own database',
+      'Use API Gateway (Kong, Nginx)',
+      'Service mesh (Istio, Linkerd)',
+      'Event bus (RabbitMQ, Kafka)',
+      'Circuit breaker (Hystrix)',
+    ],
+    bestPractices: [
+      'Single responsibility per service',
+      'Database per service',
+      'API Gateway for client communication',
+      'Implement circuit breakers',
+      'Use distributed tracing',
+      'Implement health checks',
+    ],
+    commonPitfalls: [
+      'Shared database between services',
+      'No circuit breakers',
+      'Tight coupling between services',
+      'No distributed tracing',
+      'Synchronous communication everywhere',
+    ],
+  },
+
+  'authentication': {
+    id: 'authentication',
+    name: 'Authentication and Authorization',
+    description: 'Secure user authentication patterns',
+    category: 'security',
+    context: `Auth patterns:
+- JWT for stateless auth
+- OAuth 2.0 for third-party
+- Refresh tokens
+- Password hashing (bcrypt, argon2)
+- MFA/2FA
+- Session management`,
+    examples: [
+      'JWT with access and refresh tokens',
+      'OAuth 2.0 with Google/GitHub',
+      'Password hashing with bcrypt',
+      'TOTP for 2FA',
+      'CSRF protection',
+    ],
+    bestPractices: [
+      'Use bcrypt/argon2 for passwords',
+      'Implement refresh token rotation',
+      'Short-lived access tokens',
+      'HTTPS only',
+      'Implement rate limiting',
+      'Use secure cookie flags (httpOnly, secure, sameSite)',
+    ],
+    commonPitfalls: [
+      'Storing passwords in plain text',
+      'Long-lived tokens',
+      'No refresh token mechanism',
+      'Missing CSRF protection',
+      'Not implementing rate limiting',
+    ],
+  },
+
+  'testing-strategies': {
+    id: 'testing-strategies',
+    name: 'Advanced Testing Strategies',
+    description: 'Comprehensive testing approaches',
+    category: 'testing',
+    context: `Testing approaches:
+- Test pyramid (70% unit, 20% integration, 10% E2E)
+- TDD (Test-Driven Development)
+- BDD (Behavior-Driven Development)
+- Contract testing
+- Visual regression testing
+- Performance testing`,
+    examples: [
+      'Jest for unit testing',
+      'Playwright for E2E',
+      'React Testing Library',
+      'Pact for contract testing',
+      'k6 for load testing',
+    ],
+    bestPractices: [
+      'Follow the testing pyramid',
+      'Write tests before code (TDD)',
+      'Mock external dependencies',
+      'Test edge cases and errors',
+      'Maintain test independence',
+      'Use factories for test data',
+    ],
+    commonPitfalls: [
+      'Too many E2E tests',
+      'Flaky tests',
+      'Testing implementation details',
+      'No test data management',
+      'Slow test suites',
+    ],
+  },
+
+  'code-quality': {
+    id: 'code-quality',
+    name: 'Code Quality and Clean Code',
+    description: 'Writing maintainable, clean code',
+    category: 'general',
+    context: `Clean code principles:
+- SOLID principles
+- DRY (Don't Repeat Yourself)
+- YAGNI (You Aren't Gonna Need It)
+- KISS (Keep It Simple, Stupid)
+- Meaningful names
+- Small functions`,
+    examples: [
+      'Single Responsibility Principle',
+      'Extract functions for clarity',
+      'Use descriptive variable names',
+      'Keep functions small (< 20 lines)',
+      'Avoid deep nesting',
+    ],
+    bestPractices: [
+      'Write self-documenting code',
+      'Use consistent naming conventions',
+      'Keep functions small and focused',
+      'Avoid premature abstraction',
+      'Use ESLint/Prettier for consistency',
+      'Code review for quality',
+    ],
+    commonPitfalls: [
+      'Overly complex code',
+      'Poor naming',
+      'Long functions',
+      'Deep nesting',
+      'Premature optimization',
+    ],
+  },
+
+  'seo': {
+    id: 'seo',
+    name: 'SEO Optimization',
+    description: 'Search Engine Optimization techniques',
+    category: 'frontend',
+    context: `SEO essentials:
+- Meta tags (title, description)
+- Semantic HTML
+- Structured data (JSON-LD)
+- Core Web Vitals
+- Mobile-first
+- Site speed optimization`,
+    examples: [
+      '<title>Page Title - Site Name</title>',
+      '<meta name="description" content="..." />',
+      'JSON-LD for structured data',
+      'Semantic HTML5 elements',
+      'Image alt attributes',
+    ],
+    bestPractices: [
+      'Unique title and description per page',
+      'Use semantic HTML',
+      'Implement structured data',
+      'Optimize for Core Web Vitals',
+      'Mobile-responsive design',
+      'Fast page load times (< 3s)',
+    ],
+    commonPitfalls: [
+      'Duplicate meta tags',
+      'Missing alt text',
+      'Slow page load',
+      'No structured data',
+      'Not mobile-friendly',
+    ],
+  },
+
+  'debugging': {
+    id: 'debugging',
+    name: 'Systematic Debugging',
+    description: 'Effective debugging strategies',
+    category: 'general',
+    context: `Debugging process:
+1. Reproduce the issue
+2. Isolate the problem
+3. Understand root cause (5 Whys)
+4. Fix and verify
+5. Add regression test`,
+    examples: [
+      'Use debugger and breakpoints',
+      'Read stack traces',
+      'Add strategic console.logs',
+      'Use browser DevTools',
+      'Profile performance',
+    ],
+    bestPractices: [
+      'Reproduce consistently first',
+      'Create minimal reproduction',
+      'Use debugging tools',
+      'Check logs and monitoring',
+      'Apply 5 Whys technique',
+      'Add regression tests',
+    ],
+    commonPitfalls: [
+      'Guessing instead of investigating',
+      'Fixing symptoms not root cause',
+      'Multiple changes at once',
+      'No regression tests',
+      'Not documenting the fix',
+    ],
+  },
+
+  'refactoring': {
+    id: 'refactoring',
+    name: 'Code Refactoring',
+    description: 'Safe refactoring techniques',
+    category: 'general',
+    context: `Refactoring principles:
+- Small, incremental changes
+- Tests before refactoring
+- One change at a time
+- Keep tests passing
+- Strangler Fig for large changes
+- Document decisions`,
+    examples: [
+      'Extract method',
+      'Rename for clarity',
+      'Extract variable',
+      'Replace conditional with polymorphism',
+      'Introduce parameter object',
+    ],
+    bestPractices: [
+      'Have tests before refactoring',
+      'Make small, atomic changes',
+      'Keep tests passing',
+      'Commit frequently',
+      'Use IDE refactoring tools',
+      'Document why, not what',
+    ],
+    commonPitfalls: [
+      'Large refactorings without tests',
+      'Multiple changes at once',
+      'Breaking tests',
+      'Not understanding code first',
+      'Over-engineering',
     ],
   },
 };
