@@ -220,7 +220,12 @@ POST /api/tasks - Create task`;
             role: 'user',
             content: expect.stringContaining('Answer 1'),
           }),
-        ])
+        ]),
+        expect.objectContaining({
+          phase: 'discovery',
+          agentId: 'discovery-analyst',
+          skills: expect.arrayContaining(['requirements-analysis', 'system-design']),
+        })
       );
     });
   });

@@ -1,4 +1,4 @@
-export type LLMProviderName = 'openai' | 'anthropic' | 'ollama';
+export type LLMProviderName = 'openai' | 'anthropic' | 'ollama' | 'openrouter';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -20,6 +20,13 @@ export interface ChatResponse {
     totalTokens: number;
   };
   finishReason?: string;
+  metadata?: {
+    model?: string;
+    provider?: string;
+    cost?: number;
+    nativeFinishReason?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface LLMConfig {

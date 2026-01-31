@@ -58,6 +58,24 @@ export class ProviderFactory {
         });
       }
 
+      case 'openrouter': {
+        const { OpenRouterProvider } = await import('./providers/OpenRouterProvider');
+        if (!config.apiKey) {
+          throw new ProviderConfigurationError('OpenRouter requires an API key');
+        }
+        return new OpenRouterProvider({
+          apiKey: config.apiKey,
+          baseURL: config.endpoint,
+          defaultModel: config.model,
+          siteUrl: process.env.OPENROUTER_SITE_URL,
+          siteName: process.env.OPENROUTER_SITE_NAME ?? 'OBSIDIAN',
+          providerPreferences: {
+            allow_fallbacks: true,
+            require_parameters: false,
+          },
+        });
+      }
+
       default:
         throw new ProviderConfigurationError(
           `Unsupported provider: ${(config as LLMConfig).provider}`

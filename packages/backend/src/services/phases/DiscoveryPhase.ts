@@ -1,4 +1,4 @@
-import type { LLMProvider } from '@obsidian/core';
+import type { LLMProvider, ChatOptions } from '@obsidian/core';
 import {
   DISCOVERY_SYSTEM_PROMPT,
   CLARIFYING_QUESTIONS_PROMPT,
@@ -32,6 +32,11 @@ export class DiscoveryPhase {
 
   async generateQuestions(userPrompt: string): Promise<ClarifyingQuestion[]> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string } = {
+        phase: 'discovery' as const,
+        agentId: 'discovery-analyst',
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -41,7 +46,7 @@ export class DiscoveryPhase {
           role: 'user',
           content: CLARIFYING_QUESTIONS_PROMPT(userPrompt),
         },
-      ]);
+      ], options);
 
       const questionsArray = this.parseQuestionsResponse(response.content);
 
@@ -67,6 +72,12 @@ export class DiscoveryPhase {
     try {
       const questionAnswerMap = this.buildQuestionAnswerMap(answers);
 
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'discovery' as const,
+        agentId: 'discovery-analyst',
+        skills: ['requirements-analysis', 'system-design'],
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -76,7 +87,7 @@ export class DiscoveryPhase {
           role: 'user',
           content: ARCHITECTURE_GENERATION_PROMPT(userPrompt, questionAnswerMap),
         },
-      ]);
+      ], options);
 
       return this.cleanArchitectureResponse(response.content);
     } catch (error) {

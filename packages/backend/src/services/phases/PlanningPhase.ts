@@ -1,4 +1,4 @@
-import type { LLMProvider } from '@obsidian/core';
+import type { LLMProvider, ChatOptions } from '@obsidian/core';
 import {
   PLANNING_SYSTEM_PROMPT,
   STEP_BREAKDOWN_PROMPT,
@@ -40,6 +40,12 @@ export class PlanningPhase {
 
   async breakdownSteps(architecture: string): Promise<ImplementationStep[]> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'planning' as const,
+        agentId: 'planning-architect',
+        skills: ['planning', 'task-breakdown'],
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -49,7 +55,7 @@ export class PlanningPhase {
           role: 'user',
           content: STEP_BREAKDOWN_PROMPT(architecture),
         },
-      ]);
+      ], options);
 
       return this.parseStepsResponse(response.content);
     } catch (error) {
@@ -66,6 +72,11 @@ export class PlanningPhase {
   async performRedTeaming(step: ImplementationStep): Promise<Risk[]> {
     try {
       const stepDescription = `${step.title}\n${step.description}`;
+      const options: ChatOptions & { phase?: string; agentId?: string } = {
+        phase: 'planning' as const,
+        agentId: 'security-auditor',
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -75,7 +86,7 @@ export class PlanningPhase {
           role: 'user',
           content: RED_TEAMING_PROMPT(stepDescription),
         },
-      ]);
+      ], options);
 
       return this.parseRisksResponse(response.content);
     } catch (error) {
@@ -95,6 +106,12 @@ export class PlanningPhase {
     risks: Record<string, Risk[]>
   ): Promise<string> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'planning' as const,
+        agentId: 'planning-architect',
+        skills: ['planning', 'dependency-analysis'],
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -104,7 +121,7 @@ export class PlanningPhase {
           role: 'user',
           content: PLAN_GENERATION_PROMPT(architecture, steps, risks),
         },
-      ]);
+      ], options);
 
       return this.cleanPlanResponse(response.content);
     } catch (error) {
