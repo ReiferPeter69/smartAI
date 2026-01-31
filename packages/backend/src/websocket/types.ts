@@ -8,12 +8,25 @@ export type ServerEventType =
   | 'CLARIFICATION_NEEDED'
   | 'GENERATION_COMPLETE'
   | 'GENERATION_FAILED'
-  | 'ERROR';
+  | 'ERROR'
+  | 'SESSION_CREATED'
+  | 'SESSION_COMPLETED'
+  | 'SESSION_FAILED'
+  | 'SPEC_GENERATED'
+  | 'PROGRESS_UPDATE'
+  | 'VERIFICATION_STARTED'
+  | 'VERIFICATION_PASSED'
+  | 'VERIFICATION_FAILED';
 
 export type ClientEventType =
   | 'CLARIFICATION_RESPONSE'
   | 'APPROVE_SPEC'
-  | 'CANCEL_GENERATION';
+  | 'CANCEL_GENERATION'
+  | 'START_GENERATION'
+  | 'RETRY_PHASE'
+  | 'CANCEL_SESSION'
+  | 'SPEC_APPROVED'
+  | 'SPEC_REJECTED';
 
 export interface PhaseChangedEvent {
   type: 'PHASE_CHANGED';
@@ -58,6 +71,61 @@ export interface ErrorEvent {
   code?: string;
 }
 
+export interface SessionCreatedEvent {
+  type: 'SESSION_CREATED';
+  sessionId: string;
+  userId: string;
+  prompt: string;
+  appType: string;
+}
+
+export interface SessionCompletedEvent {
+  type: 'SESSION_COMPLETED';
+  sessionId: string;
+  projectId: string;
+}
+
+export interface SessionFailedEvent {
+  type: 'SESSION_FAILED';
+  sessionId: string;
+  error: string;
+  phase: Phase;
+}
+
+export interface SpecGeneratedEvent {
+  type: 'SPEC_GENERATED';
+  sessionId: string;
+  spec: string;
+  filename: string;
+}
+
+export interface ProgressUpdateEvent {
+  type: 'PROGRESS_UPDATE';
+  sessionId: string;
+  phase: Phase;
+  progress: number;
+  message: string;
+}
+
+export interface VerificationStartedEvent {
+  type: 'VERIFICATION_STARTED';
+  sessionId: string;
+  stage: string;
+}
+
+export interface VerificationPassedEvent {
+  type: 'VERIFICATION_PASSED';
+  sessionId: string;
+  stage: string;
+}
+
+export interface VerificationFailedEvent {
+  type: 'VERIFICATION_FAILED';
+  sessionId: string;
+  stage: string;
+  error: string;
+}
+
 export type ServerEvent =
   | PhaseChangedEvent
   | FileGeneratedEvent
@@ -65,7 +133,15 @@ export type ServerEvent =
   | ClarificationNeededEvent
   | GenerationCompleteEvent
   | GenerationFailedEvent
-  | ErrorEvent;
+  | ErrorEvent
+  | SessionCreatedEvent
+  | SessionCompletedEvent
+  | SessionFailedEvent
+  | SpecGeneratedEvent
+  | ProgressUpdateEvent
+  | VerificationStartedEvent
+  | VerificationPassedEvent
+  | VerificationFailedEvent;
 
 export interface ClarificationResponseEvent {
   type: 'CLARIFICATION_RESPONSE';
@@ -80,10 +156,43 @@ export interface CancelGenerationEvent {
   type: 'CANCEL_GENERATION';
 }
 
+export interface StartGenerationEvent {
+  type: 'START_GENERATION';
+  prompt: string;
+  appType: 'react' | 'nextjs' | 'fastapi';
+  llmConfigId?: string;
+}
+
+export interface RetryPhaseEvent {
+  type: 'RETRY_PHASE';
+  sessionId: string;
+}
+
+export interface CancelSessionEvent {
+  type: 'CANCEL_SESSION';
+  sessionId: string;
+}
+
+export interface SpecApprovedEvent {
+  type: 'SPEC_APPROVED';
+  sessionId: string;
+}
+
+export interface SpecRejectedEvent {
+  type: 'SPEC_REJECTED';
+  sessionId: string;
+  feedback: string;
+}
+
 export type ClientEvent =
   | ClarificationResponseEvent
   | ApproveSpecEvent
-  | CancelGenerationEvent;
+  | CancelGenerationEvent
+  | StartGenerationEvent
+  | RetryPhaseEvent
+  | CancelSessionEvent
+  | SpecApprovedEvent
+  | SpecRejectedEvent;
 
 export interface AuthenticatedWebSocket extends WebSocket {
   userId: string;

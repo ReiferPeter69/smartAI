@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ProjectService } from '../../services/ProjectService';
+import { GenerationSessionService } from '../../services/GenerationSessionService';
 import { authenticate } from '../middleware/auth';
 import { z } from 'zod';
 import { validateRequest } from '../middleware/validation';
@@ -11,6 +12,7 @@ const createProjectSchema = z.object({
     description: z.string().optional(),
     prompt: z.string().min(10),
     appType: z.enum(['web-app', 'api', 'mobile-app', 'cli', 'library']),
+    startGeneration: z.boolean().optional().default(false),
   }),
 });
 
@@ -22,9 +24,12 @@ const updateProjectSchema = z.object({
   }),
 });
 
+
+
 export function createProjectsRouter(prisma: PrismaClient): Router {
   const router = Router();
   const projectService = new ProjectService(prisma);
+  const sessionService = new GenerationSessionService(prisma);
 
   router.post(
     '/',
@@ -37,7 +42,7 @@ export function createProjectsRouter(prisma: PrismaClient): Router {
           return;
         }
 
-        const { name, description, prompt, appType } = req.body;
+        const { name, description, prompt, appType, startGeneration } = req.body;
         const userId = req.user.userId;
 
         const project = await projectService.createProject({
@@ -47,6 +52,15 @@ export function createProjectsRouter(prisma: PrismaClient): Router {
           appType,
           userId,
         });
+
+        if (startGeneration) {
+          await sessionService.createSession({
+            userId,
+            projectId: project.id,
+            prompt,
+            appType,
+          });
+        }
 
         res.status(201).json(project);
       } catch (error) {
@@ -63,9 +77,31 @@ export function createProjectsRouter(prisma: PrismaClient): Router {
       }
 
       const userId = req.user.userId;
-      const projects = await projectService.getUserProjects(userId);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const status = req.query.status as string | undefined;
+      const appType = req.query.appType as string | undefined;
+      const search = req.query.search as string | undefined;
 
-      res.json(projects);
+      const offset = (page - 1) * limit;
+
+      const result = await projectService.getUserProjectsWithPagination(userId, {
+        limit,
+        offset,
+        status,
+        appType,
+        search,
+      });
+
+      res.json({
+        data: result.projects,
+        pagination: {
+          page,
+          limit,
+          total: result.total,
+          totalPages: Math.ceil(result.total / limit),
+        },
+      });
     } catch (error) {
       next(error);
     }
@@ -153,6 +189,34 @@ export function createProjectsRouter(prisma: PrismaClient): Router {
       await projectService.deleteProject(projectId);
 
       res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get('/:projectId/artifacts', authenticate, async (req, res, next) => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+
+      const projectId = req.params.projectId as string;
+
+      const project = await projectService.getProject(projectId);
+      if (!project) {
+        res.status(404).json({ error: 'Project not found' });
+        return;
+      }
+
+      if (project.userId !== req.user.userId) {
+        res.status(403).json({ error: 'Access denied' });
+        return;
+      }
+
+      const artifacts = await sessionService.getArtifacts(projectId);
+
+      res.json(artifacts);
     } catch (error) {
       next(error);
     }

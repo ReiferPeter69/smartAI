@@ -16,6 +16,14 @@ export interface UpdateProjectInput {
   phaseStatus?: string;
 }
 
+export interface ProjectFilters {
+  limit?: number;
+  offset?: number;
+  status?: string;
+  appType?: string;
+  search?: string;
+}
+
 export class ProjectServiceError extends Error {
   constructor(message: string, public cause?: Error) {
     super(message);
@@ -88,6 +96,51 @@ export class ProjectService {
     } catch (error) {
       throw new ProjectServiceError(
         `Failed to get projects for user: ${userId}`,
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+
+  async getUserProjectsWithPagination(
+    userId: string,
+    filters?: ProjectFilters
+  ): Promise<{ projects: Project[]; total: number }> {
+    try {
+      const where: Record<string, unknown> = { userId };
+
+      if (filters?.status) {
+        where.status = filters.status;
+      }
+
+      if (filters?.appType) {
+        where.appType = filters.appType;
+      }
+
+      if (filters?.search) {
+        where.OR = [
+          { name: { contains: filters.search, mode: 'insensitive' } },
+          { description: { contains: filters.search, mode: 'insensitive' } },
+          { prompt: { contains: filters.search, mode: 'insensitive' } },
+        ];
+      }
+
+      const limit = filters?.limit || 20;
+      const offset = filters?.offset || 0;
+
+      const [projects, total] = await Promise.all([
+        this.prisma.project.findMany({
+          where,
+          orderBy: { updatedAt: 'desc' },
+          take: limit,
+          skip: offset,
+        }),
+        this.prisma.project.count({ where }),
+      ]);
+
+      return { projects, total };
+    } catch (error) {
+      throw new ProjectServiceError(
+        `Failed to get paginated projects for user: ${userId}`,
         error instanceof Error ? error : undefined
       );
     }
@@ -227,6 +280,85 @@ export class ProjectService {
     } catch (error) {
       throw new ProjectServiceError(
         `Failed to get verification logs for project: ${projectId}`,
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+
+  async saveArtifact(
+    projectId: string,
+    phase: string,
+    filename: string,
+    content: string
+  ): Promise<void> {
+    try {
+      await this.prisma.specFile.upsert({
+        where: {
+          projectId_filename: {
+            projectId,
+            filename,
+          },
+        },
+        update: { content, phase },
+        create: {
+          projectId,
+          filename,
+          content,
+          phase,
+        },
+      });
+    } catch (error) {
+      throw new ProjectServiceError(
+        `Failed to save artifact: ${filename} for phase: ${phase}`,
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+
+  async getArtifact(
+    projectId: string,
+    phase: string,
+    filename: string
+  ): Promise<{ content: string; phase: string } | null> {
+    try {
+      const file = await this.prisma.specFile.findFirst({
+        where: {
+          projectId,
+          filename,
+          phase,
+        },
+        select: { content: true, phase: true },
+      });
+
+      return file;
+    } catch (error) {
+      throw new ProjectServiceError(
+        `Failed to get artifact: ${filename} for phase: ${phase}`,
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+
+  async listArtifacts(projectId: string): Promise<Array<{
+    id: string;
+    filename: string;
+    phase: string;
+    createdAt: Date;
+  }>> {
+    try {
+      return await this.prisma.specFile.findMany({
+        where: { projectId },
+        select: {
+          id: true,
+          filename: true,
+          phase: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    } catch (error) {
+      throw new ProjectServiceError(
+        `Failed to list artifacts for project: ${projectId}`,
         error instanceof Error ? error : undefined
       );
     }

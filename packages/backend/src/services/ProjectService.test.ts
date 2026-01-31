@@ -14,10 +14,13 @@ describe('ProjectService', () => {
         findMany: vi.fn(),
         update: vi.fn(),
         delete: vi.fn(),
+        count: vi.fn(),
       },
       specFile: {
         upsert: vi.fn(),
         findUnique: vi.fn(),
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
       },
       verificationLog: {
         create: vi.fn(),
@@ -572,6 +575,232 @@ describe('ProjectService', () => {
 
       await expect(projectService.getVerificationLogs('project-1')).rejects.toThrow(
         ProjectServiceError
+      );
+    });
+  });
+
+  describe('saveArtifact', () => {
+    it('saves an artifact with phase, filename, and content', async () => {
+      vi.mocked(mockPrisma.specFile.upsert).mockResolvedValue({
+        id: 'artifact-1',
+        projectId: 'project-1',
+        filename: 'architecture.md',
+        content: '# Architecture\n\nDetailed architecture...',
+        phase: 'discovery',
+        createdAt: new Date(),
+      });
+
+      await projectService.saveArtifact(
+        'project-1',
+        'discovery',
+        'architecture.md',
+        '# Architecture\n\nDetailed architecture...'
+      );
+
+      expect(mockPrisma.specFile.upsert).toHaveBeenCalledWith({
+        where: {
+          projectId_filename: {
+            projectId: 'project-1',
+            filename: 'architecture.md',
+          },
+        },
+        update: { 
+          content: '# Architecture\n\nDetailed architecture...',
+          phase: 'discovery'
+        },
+        create: {
+          projectId: 'project-1',
+          filename: 'architecture.md',
+          content: '# Architecture\n\nDetailed architecture...',
+          phase: 'discovery',
+        },
+      });
+    });
+
+    it('updates existing artifact if filename already exists', async () => {
+      vi.mocked(mockPrisma.specFile.upsert).mockResolvedValue({
+        id: 'artifact-1',
+        projectId: 'project-1',
+        filename: 'plan.md',
+        content: '# Updated Plan',
+        phase: 'planning',
+        createdAt: new Date(),
+      });
+
+      await projectService.saveArtifact(
+        'project-1',
+        'planning',
+        'plan.md',
+        '# Updated Plan'
+      );
+
+      expect(mockPrisma.specFile.upsert).toHaveBeenCalled();
+    });
+
+    it('handles concurrent writes safely using upsert', async () => {
+      vi.mocked(mockPrisma.specFile.upsert).mockResolvedValue({
+        id: 'artifact-1',
+        projectId: 'project-1',
+        filename: 'test.md',
+        content: 'Content B',
+        phase: 'discovery',
+        createdAt: new Date(),
+      });
+
+      await projectService.saveArtifact('project-1', 'discovery', 'test.md', 'Content A');
+      await projectService.saveArtifact('project-1', 'discovery', 'test.md', 'Content B');
+
+      expect(mockPrisma.specFile.upsert).toHaveBeenCalledTimes(2);
+    });
+
+    it('throws ProjectServiceError on database error', async () => {
+      vi.mocked(mockPrisma.specFile.upsert).mockRejectedValue(new Error('DB Error'));
+
+      await expect(
+        projectService.saveArtifact('project-1', 'discovery', 'test.md', 'content')
+      ).rejects.toThrow(ProjectServiceError);
+      await expect(
+        projectService.saveArtifact('project-1', 'discovery', 'test.md', 'content')
+      ).rejects.toThrow('Failed to save artifact: test.md for phase: discovery');
+    });
+  });
+
+  describe('getArtifact', () => {
+    beforeEach(() => {
+      mockPrisma.specFile.findFirst = vi.fn();
+    });
+
+    it('retrieves artifact by projectId, phase, and filename', async () => {
+      const mockArtifact = {
+        content: '# Architecture Document',
+        phase: 'discovery',
+      };
+
+      vi.mocked(mockPrisma.specFile.findFirst).mockResolvedValue(mockArtifact);
+
+      const result = await projectService.getArtifact('project-1', 'discovery', 'architecture.md');
+
+      expect(result).toEqual(mockArtifact);
+      expect(mockPrisma.specFile.findFirst).toHaveBeenCalledWith({
+        where: {
+          projectId: 'project-1',
+          filename: 'architecture.md',
+          phase: 'discovery',
+        },
+        select: { content: true, phase: true },
+      });
+    });
+
+    it('returns null when artifact not found', async () => {
+      vi.mocked(mockPrisma.specFile.findFirst).mockResolvedValue(null);
+
+      const result = await projectService.getArtifact('project-1', 'discovery', 'nonexistent.md');
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when phase does not match', async () => {
+      vi.mocked(mockPrisma.specFile.findFirst).mockResolvedValue(null);
+
+      const result = await projectService.getArtifact('project-1', 'planning', 'architecture.md');
+
+      expect(result).toBeNull();
+    });
+
+    it('throws ProjectServiceError on database error', async () => {
+      vi.mocked(mockPrisma.specFile.findFirst).mockRejectedValue(new Error('DB Error'));
+
+      await expect(
+        projectService.getArtifact('project-1', 'discovery', 'test.md')
+      ).rejects.toThrow(ProjectServiceError);
+      await expect(
+        projectService.getArtifact('project-1', 'discovery', 'test.md')
+      ).rejects.toThrow('Failed to get artifact: test.md for phase: discovery');
+    });
+  });
+
+  describe('listArtifacts', () => {
+    it('returns all artifacts for a project ordered by creation date', async () => {
+      const mockArtifacts = [
+        {
+          id: 'artifact-2',
+          filename: 'plan.md',
+          phase: 'planning',
+          createdAt: new Date('2024-01-02'),
+        },
+        {
+          id: 'artifact-1',
+          filename: 'architecture.md',
+          phase: 'discovery',
+          createdAt: new Date('2024-01-01'),
+        },
+      ];
+
+      vi.mocked(mockPrisma.specFile.findMany).mockResolvedValue(mockArtifacts);
+
+      const result = await projectService.listArtifacts('project-1');
+
+      expect(result).toEqual(mockArtifacts);
+      expect(mockPrisma.specFile.findMany).toHaveBeenCalledWith({
+        where: { projectId: 'project-1' },
+        select: {
+          id: true,
+          filename: true,
+          phase: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    });
+
+    it('returns empty array when project has no artifacts', async () => {
+      vi.mocked(mockPrisma.specFile.findMany).mockResolvedValue([]);
+
+      const result = await projectService.listArtifacts('project-1');
+
+      expect(result).toEqual([]);
+    });
+
+    it('includes artifacts from multiple phases', async () => {
+      const mockArtifacts = [
+        {
+          id: 'artifact-3',
+          filename: 'implementation.md',
+          phase: 'execution',
+          createdAt: new Date('2024-01-03'),
+        },
+        {
+          id: 'artifact-2',
+          filename: 'plan.md',
+          phase: 'planning',
+          createdAt: new Date('2024-01-02'),
+        },
+        {
+          id: 'artifact-1',
+          filename: 'architecture.md',
+          phase: 'discovery',
+          createdAt: new Date('2024-01-01'),
+        },
+      ];
+
+      vi.mocked(mockPrisma.specFile.findMany).mockResolvedValue(mockArtifacts);
+
+      const result = await projectService.listArtifacts('project-1');
+
+      expect(result).toHaveLength(3);
+      expect(result[0].phase).toBe('execution');
+      expect(result[1].phase).toBe('planning');
+      expect(result[2].phase).toBe('discovery');
+    });
+
+    it('throws ProjectServiceError on database error', async () => {
+      vi.mocked(mockPrisma.specFile.findMany).mockRejectedValue(new Error('DB Error'));
+
+      await expect(projectService.listArtifacts('project-1')).rejects.toThrow(
+        ProjectServiceError
+      );
+      await expect(projectService.listArtifacts('project-1')).rejects.toThrow(
+        'Failed to list artifacts for project: project-1'
       );
     });
   });

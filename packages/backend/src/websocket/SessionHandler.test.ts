@@ -2,14 +2,35 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { IncomingMessage } from 'http';
 import { SessionHandler } from './SessionHandler';
 import { UserService } from '../services/UserService';
+import { PrismaClient } from '@prisma/client';
+import { LLMProvider } from '@obsidian/core';
 
 vi.mock('../services/UserService');
+vi.mock('@prisma/client');
 
 describe('SessionHandler', () => {
   let sessionHandler: SessionHandler;
+  let mockPrisma: PrismaClient;
+  let mockLLMProvider: LLMProvider;
 
   beforeEach(() => {
-    sessionHandler = new SessionHandler();
+    mockPrisma = {
+      project: {
+        create: vi.fn(),
+        findUnique: vi.fn(),
+        update: vi.fn(),
+      },
+      specFile: {
+        upsert: vi.fn(),
+      },
+    } as any;
+
+    mockLLMProvider = {
+      complete: vi.fn(),
+      stream: vi.fn(),
+    } as any;
+
+    sessionHandler = new SessionHandler(mockPrisma, mockLLMProvider);
     vi.clearAllMocks();
   });
 
@@ -99,6 +120,58 @@ describe('SessionHandler', () => {
     it('should validate CANCEL_GENERATION event', () => {
       const event = {
         type: 'CANCEL_GENERATION',
+      };
+
+      const result = (sessionHandler as any).isValidClientEvent(event);
+      expect(result).toBe(true);
+    });
+
+    it('should validate START_GENERATION event', () => {
+      const event = {
+        type: 'START_GENERATION',
+        prompt: 'test',
+        appType: 'react',
+      };
+
+      const result = (sessionHandler as any).isValidClientEvent(event);
+      expect(result).toBe(true);
+    });
+
+    it('should validate RETRY_PHASE event', () => {
+      const event = {
+        type: 'RETRY_PHASE',
+        sessionId: 'session-123',
+      };
+
+      const result = (sessionHandler as any).isValidClientEvent(event);
+      expect(result).toBe(true);
+    });
+
+    it('should validate CANCEL_SESSION event', () => {
+      const event = {
+        type: 'CANCEL_SESSION',
+        sessionId: 'session-123',
+      };
+
+      const result = (sessionHandler as any).isValidClientEvent(event);
+      expect(result).toBe(true);
+    });
+
+    it('should validate SPEC_APPROVED event', () => {
+      const event = {
+        type: 'SPEC_APPROVED',
+        sessionId: 'session-123',
+      };
+
+      const result = (sessionHandler as any).isValidClientEvent(event);
+      expect(result).toBe(true);
+    });
+
+    it('should validate SPEC_REJECTED event', () => {
+      const event = {
+        type: 'SPEC_REJECTED',
+        sessionId: 'session-123',
+        feedback: 'Please revise',
       };
 
       const result = (sessionHandler as any).isValidClientEvent(event);

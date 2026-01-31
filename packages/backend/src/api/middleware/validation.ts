@@ -35,6 +35,10 @@ export const validateRequest = (schema: ZodSchema) => {
         req.body = validated.body;
       }
       
+      if (validated.query !== undefined) {
+        req.query = validated.query as typeof req.query;
+      }
+      
       next();
     } catch (error) {
       if (error instanceof ZodError) {

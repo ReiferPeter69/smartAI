@@ -23,9 +23,11 @@ describe('Projects API Routes - Integration Tests', () => {
         findMany: vi.fn(),
         update: vi.fn(),
         delete: vi.fn(),
+        count: vi.fn(),
       },
       specFile: {
         findUnique: vi.fn(),
+        findMany: vi.fn(),
       },
       verificationLog: {
         findMany: vi.fn(),
@@ -124,6 +126,39 @@ describe('Projects API Routes - Integration Tests', () => {
         })
         .expect(400);
     });
+
+    it('creates project and starts generation when startGeneration is true', async () => {
+      const mockProject = {
+        id: 'project-1',
+        name: 'Test Project',
+        description: 'A test project',
+        prompt: 'Build a todo app with React',
+        appType: 'web-app',
+        userId: 'user-1',
+        status: 'pending',
+        currentPhase: 'discovery',
+        phaseStatus: 'pending',
+        filesPath: 'projects/user-1/123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      vi.mocked(mockPrisma.project.create).mockResolvedValue(mockProject);
+
+      const response = await request(app)
+        .post('/api/projects')
+        .send({
+          name: 'Test Project',
+          description: 'A test project',
+          prompt: 'Build a todo app with React',
+          appType: 'web-app',
+          startGeneration: true,
+        })
+        .expect(201);
+
+      expect(response.body.id).toBe('project-1');
+      expect(mockPrisma.project.create).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('GET /api/projects', () => {
@@ -160,28 +195,128 @@ describe('Projects API Routes - Integration Tests', () => {
       ];
 
       vi.mocked(mockPrisma.project.findMany).mockResolvedValue(mockProjects);
+      vi.mocked(mockPrisma.project.count).mockResolvedValue(2);
 
       const response = await request(app)
         .get('/api/projects')
         .expect(200);
 
-      expect(response.body).toHaveLength(2);
-      expect(response.body[0].id).toBe('project-1');
-      expect(response.body[1].id).toBe('project-2');
-      expect(mockPrisma.project.findMany).toHaveBeenCalledWith({
-        where: { userId: 'user-1' },
-        orderBy: { updatedAt: 'desc' },
+      expect(response.body.data).toHaveLength(2);
+      expect(response.body.data[0].id).toBe('project-1');
+      expect(response.body.data[1].id).toBe('project-2');
+      expect(response.body.pagination).toEqual({
+        page: 1,
+        limit: 20,
+        total: 2,
+        totalPages: 1,
       });
     });
 
     it('returns empty array when user has no projects', async () => {
       vi.mocked(mockPrisma.project.findMany).mockResolvedValue([]);
+      vi.mocked(mockPrisma.project.count).mockResolvedValue(0);
 
       const response = await request(app)
         .get('/api/projects')
         .expect(200);
 
-      expect(response.body).toEqual([]);
+      expect(response.body.data).toEqual([]);
+      expect(response.body.pagination.total).toBe(0);
+    });
+
+    it('supports pagination with page and limit parameters', async () => {
+      const mockProjects = [
+        {
+          id: 'project-3',
+          name: 'Project 3',
+          description: null,
+          prompt: 'Build app 3',
+          appType: 'web-app',
+          userId: 'user-1',
+          status: 'pending',
+          currentPhase: 'discovery',
+          phaseStatus: 'pending',
+          filesPath: 'path3',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      vi.mocked(mockPrisma.project.findMany).mockResolvedValue(mockProjects);
+      vi.mocked(mockPrisma.project.count).mockResolvedValue(25);
+
+      const response = await request(app)
+        .get('/api/projects?page=2&limit=10')
+        .expect(200);
+
+      expect(response.body.data).toHaveLength(1);
+      expect(response.body.pagination).toEqual({
+        page: 2,
+        limit: 10,
+        total: 25,
+        totalPages: 3,
+      });
+
+      expect(mockPrisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          take: 10,
+          skip: 10,
+        })
+      );
+    });
+
+    it('supports filtering by status', async () => {
+      vi.mocked(mockPrisma.project.findMany).mockResolvedValue([]);
+      vi.mocked(mockPrisma.project.count).mockResolvedValue(0);
+
+      await request(app)
+        .get('/api/projects?status=completed')
+        .expect(200);
+
+      expect(mockPrisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 'user-1',
+            status: 'completed',
+          }),
+        })
+      );
+    });
+
+    it('supports filtering by appType', async () => {
+      vi.mocked(mockPrisma.project.findMany).mockResolvedValue([]);
+      vi.mocked(mockPrisma.project.count).mockResolvedValue(0);
+
+      await request(app)
+        .get('/api/projects?appType=api')
+        .expect(200);
+
+      expect(mockPrisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 'user-1',
+            appType: 'api',
+          }),
+        })
+      );
+    });
+
+    it('supports search functionality', async () => {
+      vi.mocked(mockPrisma.project.findMany).mockResolvedValue([]);
+      vi.mocked(mockPrisma.project.count).mockResolvedValue(0);
+
+      await request(app)
+        .get('/api/projects?search=todo')
+        .expect(200);
+
+      expect(mockPrisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 'user-1',
+            OR: expect.any(Array),
+          }),
+        })
+      );
     });
   });
 
@@ -481,6 +616,96 @@ describe('Projects API Routes - Integration Tests', () => {
 
       await request(app)
         .get('/api/projects/project-1/files/architecture.md')
+        .expect(403);
+    });
+  });
+
+  describe('GET /api/projects/:projectId/artifacts', () => {
+    it('retrieves all artifacts for a project', async () => {
+      const mockProject = {
+        id: 'project-1',
+        name: 'Test',
+        description: null,
+        prompt: 'Build',
+        appType: 'web-app',
+        userId: 'user-1',
+        status: 'pending',
+        currentPhase: 'planning',
+        phaseStatus: 'completed',
+        filesPath: 'path',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockArtifacts = {
+        discovery: {
+          'architecture.md': '# Architecture',
+        },
+        planning: {
+          'plan.md': '# Plan',
+        },
+      };
+
+      vi.mocked(mockPrisma.project.findUnique).mockResolvedValue(mockProject);
+      vi.mocked(mockPrisma.specFile.findMany).mockResolvedValue([
+        {
+          id: 'file-1',
+          filename: 'architecture.md',
+          content: '# Architecture',
+          phase: 'discovery',
+          projectId: 'project-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'file-2',
+          filename: 'plan.md',
+          content: '# Plan',
+          phase: 'planning',
+          projectId: 'project-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
+
+      const response = await request(app)
+        .get('/api/projects/project-1/artifacts')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('discovery');
+      expect(response.body).toHaveProperty('planning');
+      expect(response.body.discovery['architecture.md']).toBe('# Architecture');
+      expect(response.body.planning['plan.md']).toBe('# Plan');
+    });
+
+    it('returns 404 when project not found', async () => {
+      vi.mocked(mockPrisma.project.findUnique).mockResolvedValue(null);
+
+      await request(app)
+        .get('/api/projects/nonexistent/artifacts')
+        .expect(404);
+    });
+
+    it('returns 403 when user does not own project', async () => {
+      const mockProject = {
+        id: 'project-1',
+        name: 'Test',
+        description: null,
+        prompt: 'Build',
+        appType: 'web-app',
+        userId: 'other-user',
+        status: 'pending',
+        currentPhase: 'discovery',
+        phaseStatus: 'pending',
+        filesPath: 'path',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      vi.mocked(mockPrisma.project.findUnique).mockResolvedValue(mockProject);
+
+      await request(app)
+        .get('/api/projects/project-1/artifacts')
         .expect(403);
     });
   });
