@@ -1,4 +1,4 @@
-import type { LLMProvider } from '@obsidian/core';
+import type { LLMProvider, ChatOptions } from '@obsidian/core';
 import {
   EXECUTION_SYSTEM_PROMPT,
   CODE_GENERATION_PROMPT,
@@ -54,6 +54,12 @@ export class ExecutionPhase {
     step: { id: string; title: string; description: string }
   ): Promise<GeneratedFile[]> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'execution' as const,
+        agentId: 'backend-architect',
+        skills: ['nodejs', 'typescript'],
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -63,7 +69,7 @@ export class ExecutionPhase {
           role: 'user',
           content: CODE_GENERATION_PROMPT(architecture, plan, step),
         },
-      ]);
+      ], options);
 
       return this.parseFilesResponse(response.content);
     } catch (error) {
@@ -83,6 +89,13 @@ export class ExecutionPhase {
     context: string
   ): Promise<string> {
     try {
+      const { agentId, skills } = this.selectAgentForFile(filePath);
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'execution' as const,
+        agentId,
+        skills,
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -92,7 +105,7 @@ export class ExecutionPhase {
           role: 'user',
           content: FILE_GENERATION_PROMPT(filePath, description, context),
         },
-      ]);
+      ], options);
 
       return response.content.trim();
     } catch (error) {
@@ -111,6 +124,11 @@ export class ExecutionPhase {
     framework: string
   ): Promise<string[]> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string } = {
+        phase: 'execution' as const,
+        agentId: 'backend-architect',
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -120,7 +138,7 @@ export class ExecutionPhase {
           role: 'user',
           content: DIRECTORY_STRUCTURE_PROMPT(appType, framework),
         },
-      ]);
+      ], options);
 
       return this.parseDirectoryResponse(response.content);
     } catch (error) {
@@ -139,6 +157,11 @@ export class ExecutionPhase {
     techStack: string
   ): Promise<Dependencies> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string } = {
+        phase: 'execution' as const,
+        agentId: 'backend-architect',
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -148,7 +171,7 @@ export class ExecutionPhase {
           role: 'user',
           content: DEPENDENCY_ANALYSIS_PROMPT(architecture, techStack),
         },
-      ]);
+      ], options);
 
       return this.parseDependenciesResponse(response.content);
     } catch (error) {
@@ -164,6 +187,13 @@ export class ExecutionPhase {
 
   async reviewCode(code: string, filePath: string): Promise<CodeReviewResult> {
     try {
+      const { agentId, skills } = this.selectAgentForFile(filePath);
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'execution' as const,
+        agentId,
+        skills,
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -173,7 +203,7 @@ export class ExecutionPhase {
           role: 'user',
           content: CODE_REVIEW_PROMPT(code, filePath),
         },
-      ]);
+      ], options);
 
       return this.parseCodeReviewResponse(response.content);
     } catch (error) {
@@ -193,6 +223,13 @@ export class ExecutionPhase {
     issues: CodeIssue[]
   ): Promise<string> {
     try {
+      const { agentId, skills } = this.selectAgentForFile(filePath);
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'execution' as const,
+        agentId,
+        skills,
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -202,7 +239,7 @@ export class ExecutionPhase {
           role: 'user',
           content: FIX_CODE_PROMPT(code, filePath, issues),
         },
-      ]);
+      ], options);
 
       return response.content.trim();
     } catch (error) {
@@ -214,6 +251,28 @@ export class ExecutionPhase {
         error instanceof Error ? error : undefined
       );
     }
+  }
+
+  private selectAgentForFile(filePath: string): { agentId: string; skills: string[] } {
+    const extension = filePath.split('.').pop()?.toLowerCase() || '';
+    
+    const frontendExtensions = ['tsx', 'jsx', 'css', 'scss', 'sass', 'less', 'vue'];
+    const isFrontend = frontendExtensions.includes(extension) || 
+                       filePath.includes('/components/') || 
+                       filePath.includes('/pages/') ||
+                       filePath.includes('/frontend/');
+
+    if (isFrontend) {
+      return {
+        agentId: 'frontend-expert',
+        skills: ['react', 'typescript', 'css'],
+      };
+    }
+
+    return {
+      agentId: 'backend-architect',
+      skills: ['nodejs', 'typescript', 'api-design'],
+    };
   }
 
   private parseFilesResponse(response: string): GeneratedFile[] {

@@ -6,6 +6,7 @@ import { ExecutionPhase } from './phases/ExecutionPhase';
 import { VerificationPhase } from './phases/VerificationPhase';
 import { ProjectService } from './ProjectService';
 import { GenerationEventEmitter } from '../websocket/EventEmitter';
+import { EnhancedLLMService, type CostMetrics } from './EnhancedLLMService';
 
 export interface PhaseUpdateCallback {
   (phase: Phase, status: string, data?: Record<string, unknown>): void;
@@ -26,6 +27,7 @@ export class GenerationService {
   private executionPhase: ExecutionPhase;
   private verificationPhase: VerificationPhase;
   private onPhaseUpdate?: PhaseUpdateCallback;
+  private enhancedLLM: EnhancedLLMService;
 
   constructor(
     private session: GenerationSession,
@@ -33,10 +35,11 @@ export class GenerationService {
     private projectService: ProjectService
   ) {
     this.orchestrator = new PhaseOrchestrator(session);
-    this.discoveryPhase = new DiscoveryPhase(llmProvider);
-    this.planningPhase = new PlanningPhase(llmProvider);
-    this.executionPhase = new ExecutionPhase(llmProvider);
-    this.verificationPhase = new VerificationPhase(llmProvider);
+    this.enhancedLLM = new EnhancedLLMService(llmProvider);
+    this.discoveryPhase = new DiscoveryPhase(this.enhancedLLM);
+    this.planningPhase = new PlanningPhase(this.enhancedLLM);
+    this.executionPhase = new ExecutionPhase(this.enhancedLLM);
+    this.verificationPhase = new VerificationPhase(this.enhancedLLM);
   }
 
   setPhaseUpdateCallback(callback: PhaseUpdateCallback): void {
@@ -336,5 +339,13 @@ export class GenerationService {
     this.notifyPhaseUpdate(phase, 'failed', {
       error: errorMessage,
     });
+  }
+
+  getCostMetrics(): CostMetrics {
+    return this.enhancedLLM.getCostMetrics();
+  }
+
+  resetCostMetrics(): void {
+    this.enhancedLLM.resetCostMetrics();
   }
 }

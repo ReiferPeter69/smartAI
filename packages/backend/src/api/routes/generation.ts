@@ -31,6 +31,7 @@ const startPhaseSchema = z.object({
 export function createGenerationRouter(prisma: PrismaClient): Router {
   const router = Router();
   const projectService = new ProjectService(prisma);
+  const activeServices = new Map<string, GenerationService>();
 
   router.post(
     '/discovery/start',
@@ -101,6 +102,7 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         };
 
         const generationService = new GenerationService(session, provider, projectService);
+        activeServices.set(session.id, generationService);
 
         const questions = await generationService.startDiscovery();
 
@@ -179,10 +181,12 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         };
 
         const generationService = new GenerationService(session, provider, projectService);
+        activeServices.set(session.id, generationService);
 
         await generationService.completeDiscoveryWithAnswers(answers);
 
         res.json({
+          sessionId: session.id,
           message: 'Discovery phase completed',
           phase: 'discovery',
           status: 'completed',
@@ -262,10 +266,12 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         };
 
         const generationService = new GenerationService(session, provider, projectService);
+        activeServices.set(session.id, generationService);
 
         await generationService.startPlanning();
 
         res.json({
+          sessionId: session.id,
           message: 'Planning phase completed',
           phase: 'planning',
           status: 'completed',
@@ -353,10 +359,12 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         };
 
         const generationService = new GenerationService(session, provider, projectService);
+        activeServices.set(session.id, generationService);
 
         await generationService.startExecution();
 
         res.json({
+          sessionId: session.id,
           message: 'Execution phase completed',
           phase: 'execution',
           status: 'completed',
@@ -451,14 +459,54 @@ export function createGenerationRouter(prisma: PrismaClient): Router {
         };
 
         const generationService = new GenerationService(session, provider, projectService);
+        activeServices.set(session.id, generationService);
 
         await generationService.startVerification();
 
         res.json({
+          sessionId: session.id,
           message: 'Verification phase completed',
           phase: 'verification',
           status: 'completed',
         });
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+
+  router.get(
+    '/sessions/:sessionId/metrics',
+    authenticate,
+    async (req, res, next) => {
+      try {
+        if (!req.user) {
+          res.status(401).json({ error: 'Unauthorized' });
+          return;
+        }
+
+        const sessionId = Array.isArray(req.params.sessionId) ? req.params.sessionId[0] : req.params.sessionId;
+        const generationService = activeServices.get(sessionId);
+
+        if (!generationService) {
+          res.status(404).json({ error: 'Session not found or expired' });
+          return;
+        }
+
+        const metrics = generationService.getCostMetrics();
+        
+        const formattedMetrics = {
+          totalCost: metrics.totalCost,
+          totalTokens: metrics.totalTokens,
+          calls: metrics.calls,
+          modelUsage: Array.from(metrics.modelUsage.entries()).map(([model, usage]) => ({
+            model,
+            cost: usage.cost,
+            calls: usage.calls,
+          })),
+        };
+
+        res.json({ sessionId, metrics: formattedMetrics });
       } catch (error) {
         next(error);
       }

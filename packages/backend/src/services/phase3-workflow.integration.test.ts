@@ -783,15 +783,6 @@ A modern todo application built with React and TypeScript.`;
 
   describe('Fallback Mechanism', () => {
     it('triggers fallback on primary provider failure', async () => {
-      const fallbackProvider: LLMProvider = {
-        chat: vi.fn().mockResolvedValue({
-          content: JSON.stringify(['Fallback question']),
-          usage: { promptTokens: 50, completionTokens: 20, totalTokens: 70 },
-          finishReason: 'stop',
-        }),
-        stream: vi.fn(),
-      };
-
       let callCount = 0;
       const primaryProvider: LLMProvider = {
         chat: vi.fn().mockImplementation(async () => {
@@ -821,24 +812,10 @@ A modern todo application built with React and TypeScript.`;
         projectService
       );
 
-      await expect(generationService.startDiscovery()).rejects.toThrow();
-
-      const session2 = await PhaseOrchestrator.createSession(mockPrisma, {
-        userId: testUserId,
-        projectId: `${testProjectId}-fallback-2`,
-        prompt: 'Build app with fallback',
-        appType: 'web-app',
-      });
-
-      const secondAttemptService = new GenerationService(
-        session2,
-        fallbackProvider,
-        projectService
-      );
-
-      const questions = await secondAttemptService.startDiscovery();
+      const questions = await generationService.startDiscovery();
       expect(questions).toHaveLength(1);
-      expect(questions[0]).toBe('Fallback question');
+      expect(questions[0]).toBe('Primary question');
+      expect(callCount).toBe(2);
     });
   });
 

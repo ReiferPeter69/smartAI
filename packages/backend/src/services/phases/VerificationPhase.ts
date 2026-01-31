@@ -1,4 +1,4 @@
-import type { LLMProvider } from '@obsidian/core';
+import type { LLMProvider, ChatOptions } from '@obsidian/core';
 import {
   VERIFICATION_SYSTEM_PROMPT,
   ERROR_ANALYSIS_PROMPT,
@@ -165,6 +165,12 @@ export class VerificationPhase {
     filePath: string
   ): Promise<string> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'verification' as const,
+        agentId: 'test-specialist',
+        skills: ['testing'],
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -174,7 +180,7 @@ export class VerificationPhase {
           role: 'user',
           content: FIX_GENERATION_PROMPT(errorAnalysis, code, filePath),
         },
-      ]);
+      ], options);
 
       return response.content.trim();
     } catch (error) {
@@ -217,6 +223,12 @@ export class VerificationPhase {
 
   async analyzeTestFailures(testOutput: string): Promise<TestFailureAnalysis> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'verification' as const,
+        agentId: 'test-specialist',
+        skills: ['testing'],
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -226,7 +238,7 @@ export class VerificationPhase {
           role: 'user',
           content: TEST_FAILURE_ANALYSIS_PROMPT(testOutput),
         },
-      ]);
+      ], options);
 
       return this.parseTestFailureAnalysis(response.content);
     } catch (error) {
@@ -317,6 +329,12 @@ export class VerificationPhase {
 
   async scanSecurity(code: string, filePath: string): Promise<SecurityScanResult> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string; skills?: string[] } = {
+        phase: 'verification' as const,
+        agentId: 'security-auditor',
+        skills: ['security', 'auditing'],
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -326,7 +344,7 @@ export class VerificationPhase {
           role: 'user',
           content: SECURITY_SCAN_PROMPT(code, filePath),
         },
-      ]);
+      ], options);
 
       return this.parseSecurityScan(response.content);
     } catch (error) {
@@ -342,6 +360,11 @@ export class VerificationPhase {
 
   async analyzeCodeQuality(code: string, filePath: string): Promise<CodeQualityAnalysis> {
     try {
+      const options: ChatOptions & { phase?: string; agentId?: string } = {
+        phase: 'verification' as const,
+        agentId: 'test-specialist',
+      };
+
       const response = await this.llmProvider.chat([
         {
           role: 'system',
@@ -351,7 +374,7 @@ export class VerificationPhase {
           role: 'user',
           content: CODE_QUALITY_ANALYSIS_PROMPT(code, filePath),
         },
-      ]);
+      ], options);
 
       return this.parseCodeQualityAnalysis(response.content);
     } catch (error) {
